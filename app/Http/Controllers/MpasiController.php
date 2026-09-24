@@ -162,7 +162,14 @@ class MpasiController extends Controller
         $settings = Setting::query()->pluck('value', 'key')->toArray();
         $initialRole = $role;
 
-        return view('mpasi.index', compact(
+        $viewName = match ($role) {
+            'kasir' => 'kasir.dashboard',
+            'admin' => 'admin.dashboard',
+            'owner' => 'owner.dashboard',
+            default => 'mpasi.index',
+        };
+
+        return view($viewName, compact(
             'products',
             'outlets',
             'dailyMenus',
@@ -284,35 +291,63 @@ class MpasiController extends Controller
     public function apiSaveOutletStock(Request $request)
     {
         $stockData = $request->input('outlet_stock');
-        if (is_array($stockData)) {
-            $value = json_encode($stockData);
-        } else if (is_string($stockData)) {
-            $decoded = json_decode($stockData, true);
-            $value = is_array($decoded) ? json_encode($decoded) : $stockData;
-        } else {
-            $value = '{}';
+        $incoming = is_array($stockData) ? $stockData : (is_string($stockData) ? json_decode($stockData, true) : []);
+        if (!is_array($incoming)) {
+            $incoming = [];
         }
 
+        $existingRaw = $this->getSetting('mamamyuk_outlet_stock', '{}');
+        $existing = json_decode($existingRaw, true);
+        if (!is_array($existing)) {
+            $existing = [];
+        }
+
+        foreach ($incoming as $outletName => $productsStock) {
+            if (is_array($productsStock)) {
+                if (!isset($existing[$outletName]) || !is_array($existing[$outletName])) {
+                    $existing[$outletName] = [];
+                }
+                foreach ($productsStock as $prodId => $qty) {
+                    $existing[$outletName][(string)$prodId] = (int)$qty;
+                }
+            }
+        }
+
+        $value = json_encode($existing);
         $this->setSetting('mamamyuk_outlet_stock', $value);
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'outlet_stock' => $existing]);
     }
 
     public function apiSaveSalesRecords(Request $request)
     {
         $salesData = $request->input('sales_records');
-        if (is_array($salesData)) {
-            $value = json_encode($salesData);
-        } else if (is_string($salesData)) {
-            $decoded = json_decode($salesData, true);
-            $value = is_array($decoded) ? json_encode($decoded) : $salesData;
-        } else {
-            $value = '{}';
+        $incoming = is_array($salesData) ? $salesData : (is_string($salesData) ? json_decode($salesData, true) : []);
+        if (!is_array($incoming)) {
+            $incoming = [];
         }
 
+        $existingRaw = $this->getSetting('mamamyuk_sales_records', '{}');
+        $existing = json_decode($existingRaw, true);
+        if (!is_array($existing)) {
+            $existing = [];
+        }
+
+        foreach ($incoming as $outletName => $records) {
+            if (is_array($records)) {
+                if (!isset($existing[$outletName]) || !is_array($existing[$outletName])) {
+                    $existing[$outletName] = [];
+                }
+                foreach ($records as $key => $val) {
+                    $existing[$outletName][$key] = $val;
+                }
+            }
+        }
+
+        $value = json_encode($existing);
         $this->setSetting('mamamyuk_sales_records', $value);
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'sales_records' => $existing]);
     }
 
     private function findPreOrder($id)
