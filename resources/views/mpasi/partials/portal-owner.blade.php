@@ -102,7 +102,7 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                             <div>
                                 <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bowl-food text-brand-purple me-2"></i> Master Data Produk Mamam Yuk</h4>
-                                <p class="text-muted fs-7 mb-0">Owner dapat menambah, mengedit, restok, mengubah status, maupun menghapus varian produk.</p>
+                                <p class="text-muted fs-7 mb-0">Owner dapat menambah, mengedit, restok (Stok Pelanggan), mengubah status, maupun menghapus varian produk.</p>
                             </div>
                             <div class="filter-controls-mobile">
                                 <button class="btn btn-brand-yellow fw-bold" onclick="showAddProductModal()"><i class="fa-solid fa-plus me-1"></i> Tambah Varian Baru</button>
@@ -112,7 +112,7 @@
                             <div class="table-responsive">
                                 <table class="table align-middle fs-7 mb-0">
                                     <thead class="bg-light">
-                                        <tr><th>Foto</th><th>ID</th><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready</th><th>Status</th><th class="text-center">Aksi Owner</th></tr>
+                                        <tr><th>Foto</th><th>ID</th><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready Pelanggan</th><th>Status</th><th class="text-center">Aksi Owner</th></tr>
                                     </thead>
                                     <tbody id="own-products-tbody"></tbody>
                                 </table>

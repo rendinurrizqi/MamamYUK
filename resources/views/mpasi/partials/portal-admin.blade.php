@@ -44,7 +44,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bowl-food text-brand-purple me-2"></i> Master Data Produk Mamam Yuk</h4>
-                                <p class="text-muted fs-7 mb-0">Kelola varian produk, harga, dan ketersediaan stok ready di outlet.</p>
+                                <p class="text-muted fs-7 mb-0">Kelola varian produk, harga, dan ketersediaan stok ready khusus Pelanggan (Pre-Order Online).</p>
                             </div>
                             <button class="btn btn-brand-yellow fw-bold" onclick="showAddProductModal()"><i class="fa-solid fa-plus me-1"></i> Tambah Varian Baru</button>
                         </div>
@@ -52,7 +52,7 @@
                             <div class="table-responsive">
                                 <table class="table align-middle fs-7 mb-0">
                                     <thead class="bg-light">
-                                        <tr><th>Foto</th><th>ID</th><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready</th><th>Status</th><th class="text-center">Aksi Admin</th></tr>
+                                        <tr><th>Foto</th><th>ID</th><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready Pelanggan</th><th>Status</th><th class="text-center">Aksi Admin</th></tr>
                                     </thead>
                                     <tbody id="adm-products-tbody"></tbody>
                                 </table>
@@ -145,7 +145,7 @@
                                             <th>Varian Produk Mamam Yuk</th>
                                             <th>Kategori & Usia</th>
                                             <th>Harga / Cup</th>
-                                            <th>Stok Ready Cabang (Cup)</th>
+                                            <th>Stok Ready Cabang (Khusus Kasir/Outlet)</th>
                                             <th class="text-center">Aksi / Atur Stok</th>
                                         </tr>
                                     </thead>
