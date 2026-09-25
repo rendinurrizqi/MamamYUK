@@ -9,18 +9,19 @@
             isStoreOpen: true,
             outletStock: (() => {
                 try {
+                    let d = new Date();
+                    let wib = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+                    let todayStr = `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, '0')}-${String(wib.getDate()).padStart(2, '0')}`;
                     let serverStock = window.MPASI_DATA?.settings?.mamamyuk_outlet_stock;
                     if (typeof serverStock === 'string') {
                         try { serverStock = JSON.parse(serverStock); } catch(err){}
                     }
                     if (serverStock && typeof serverStock === 'object' && !Array.isArray(serverStock)) {
-                        try { localStorage.setItem('mamamyuk_outlet_stock', JSON.stringify(serverStock)); } catch(e){}
-                        return serverStock;
-                    }
-                    const saved = localStorage.getItem('mamamyuk_outlet_stock');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+                        let valid = true;
+                        Object.values(serverStock).forEach(oStock => {
+                            if (oStock && typeof oStock === 'object' && oStock._date && oStock._date !== todayStr) valid = false;
+                        });
+                        if (valid) return serverStock;
                     }
                     return {};
                 } catch(e) { return {}; }
@@ -65,75 +66,22 @@
                     { day: 'Sabtu', productIds: [] },
                     { day: 'Minggu', productIds: [] }
                 ],
-            preOrders: (() => {
-                try {
-                    const d = new Date();
-                    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                    d.setDate(d.getDate() - 1);
-                    const yesterdayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-                    const dbOrders = Array.isArray(window.MPASI_DATA?.preOrders) ? window.MPASI_DATA.preOrders : [];
-                    const saved = localStorage.getItem('mpasi_customer_orders');
-                    const localOrders = saved ? (JSON.parse(saved) || []) : [];
-
-                    const combinedList = [];
-
-                    dbOrders.forEach(o => {
-                        if (o && o.id) {
-                            if (!o.dbId && o.id.startsWith('ORD-')) {
-                                const num = parseInt(o.id.replace('ORD-', ''), 10);
-                                if (!isNaN(num)) o.dbId = num;
-                            }
-                            combinedList.push(o);
-                        }
-                    });
-
-                    localOrders.forEach(lo => {
-                        if (!lo || !lo.id) return;
-                        
-                        const loDbId = lo.dbId || (lo.id.startsWith('ORD-') ? parseInt(lo.id.replace('ORD-', ''), 10) : null);
-                        
-                        const match = combinedList.find(existing => {
-                            if (existing.id === lo.id) return true;
-                            if (existing.dbId && loDbId && Number(existing.dbId) === Number(loDbId)) return true;
-                            if (loDbId && existing.id === 'ORD-' + String(loDbId).padStart(3, '0')) return true;
-                            return false;
-                        });
-
-                        if (match) {
-                            if (lo.isPaid !== undefined) match.isPaid = lo.isPaid;
-                            if (lo.isTaken !== undefined) match.isTaken = lo.isTaken;
-                            if (lo.cancelStatus !== undefined) match.cancelStatus = lo.cancelStatus;
-                            if (lo.cancelReason !== undefined) match.cancelReason = lo.cancelReason;
-                            if (loDbId && !match.dbId) match.dbId = loDbId;
-                        } else {
-                            combinedList.push(lo);
-                        }
-                    });
-
-                    const filtered = combinedList.map(order => {
-                        if (!order.date) order.date = todayStr;
-                        return order;
-                    }).filter(order => order.date === todayStr || order.date === yesterdayStr);
-
-                    localStorage.setItem('mpasi_customer_orders', JSON.stringify(filtered));
-                    return filtered;
-                } catch(e) { return []; }
-            })(),
+            preOrders: (Array.isArray(window.MPASI_DATA?.preOrders) ? window.MPASI_DATA.preOrders : []),
             outletSalesRecords: (() => {
                 try {
+                    let d = new Date();
+                    let wib = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+                    let todayStr = `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, '0')}-${String(wib.getDate()).padStart(2, '0')}`;
                     let serverSales = window.MPASI_DATA?.settings?.mamamyuk_sales_records;
                     if (typeof serverSales === 'string') {
                         try { serverSales = JSON.parse(serverSales); } catch(err){}
                     }
                     if (serverSales && typeof serverSales === 'object' && !Array.isArray(serverSales) && Object.keys(serverSales).length > 0) {
-                        try { localStorage.setItem('mpasi_outlet_sales_records', JSON.stringify(serverSales)); } catch(e){}
-                        return serverSales;
-                    }
-                    const saved = localStorage.getItem('mpasi_outlet_sales_records');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+                        let valid = true;
+                        Object.values(serverSales).forEach(oSales => {
+                            if (oSales && typeof oSales === 'object' && oSales._date && oSales._date !== todayStr) valid = false;
+                        });
+                        if (valid) return serverSales;
                     }
                     return {};
                 } catch(e) { return {}; }
@@ -145,11 +93,22 @@
             ],
             redemptions: Array.isArray(window.MPASI_DATA?.redemptions) ? window.MPASI_DATA.redemptions : [],
             members: (() => {
-                try {
-                    const saved = localStorage.getItem('mamamyuk_members');
-                    if (saved) return JSON.parse(saved);
-                } catch(e){}
-                return {};
+                const list = Array.isArray(window.MPASI_DATA?.members) ? window.MPASI_DATA.members : [];
+                const map = {};
+                list.forEach(m => {
+                    const key = m.whatsapp || m.email || m.identifier;
+                    if (key) {
+                        map[key] = {
+                            identifier: key,
+                            name: m.name || ('Bunda ' + key),
+                            wa: m.whatsapp || key,
+                            points: Number(m.points || 0),
+                            favoriteOutlet: m.favorite_outlet || '',
+                            pointsHistory: []
+                        };
+                    }
+                });
+                return map;
             })(),
             pointRewards: (Array.isArray(window.MPASI_DATA?.rewards) && window.MPASI_DATA.rewards.length > 0)
                 ? window.MPASI_DATA.rewards.map(r => ({
@@ -167,8 +126,11 @@
             pointsEarnRate: 1000,
             expenses: (() => {
                 try {
-                    const saved = localStorage.getItem('mpasi_owner_expenses');
-                    if (saved) return JSON.parse(saved);
+                    let serverExp = window.MPASI_DATA?.settings?.mamamyuk_owner_expenses;
+                    if (typeof serverExp === 'string') {
+                        try { serverExp = JSON.parse(serverExp); } catch(err){}
+                    }
+                    if (Array.isArray(serverExp)) return serverExp;
                 } catch(e){}
                 const d = new Date();
                 const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -181,6 +143,16 @@
         };
 
         const PRODUCT_IMG_PLACEHOLDER_CLASS = 'bg-purple-light rounded-3 p-4 text-center mb-2 fs-1 text-brand-purple d-flex align-items-center justify-content-center';
+
+        function isSameProductId(id1, id2) {
+            if (id1 == id2) return true;
+            const str1 = String(id1 || '');
+            const str2 = String(id2 || '');
+            if (str1 === str2) return true;
+            const clean1 = str1.replace(/^PRD-/i, '').trim();
+            const clean2 = str2.replace(/^PRD-/i, '').trim();
+            return clean1 !== '' && clean1 === clean2;
+        }
 
         function showFullPosterModal(title, imgUrl) {
             if (!imgUrl) return;
@@ -212,7 +184,6 @@
         }
         function productThumbHtml(p, size) { const s = size || 48; if (p.image) { return `<img src="${p.image}" alt="${p.name}" class="rounded-2" style="width:${s}px; height:${s}px; object-fit:cover;">`; } return `<div class="bg-purple-light text-brand-purple rounded-2 d-flex align-items-center justify-content-center" style="width:${s}px; height:${s}px;"><i class="fa-solid fa-bowl-food"></i></div>`; }
         function escAttr(str) { return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
-        function computeEarnedPoints(items) { let total = 0; (items || []).forEach(it => { const p = state.products.find(x => x.id == it.productId); if (!p) return; if (p.customPoints && p.customPoints > 0) { total += p.customPoints * it.qty; } else { total += Math.floor((p.price * it.qty) / state.pointsEarnRate); } }); return total; }
         function startLoading() { const el = document.getElementById('loading-overlay'); if (el) el.style.display = 'flex'; }
         function endLoading() { const el = document.getElementById('loading-overlay'); if (el) el.style.display = 'none'; }
         function promptKasirPinModal(outletName, onSuccess, onCancel) {
@@ -309,9 +280,16 @@
             state.activeRole = roleName;
             const el = document.getElementById('active-role-display');
             if (el) el.innerText = roleName.toUpperCase();
-            document.querySelectorAll('.role-portal-page').forEach(el => el.style.display = 'none');
-            const targetPortal = document.getElementById('role-portal-' + roleName);
-            if (targetPortal) targetPortal.style.display = 'block';
+
+            const portalPages = document.querySelectorAll('.role-portal-page');
+            if (portalPages.length > 1) {
+                portalPages.forEach(el => el.style.display = 'none');
+                const targetPortal = document.getElementById('role-portal-' + roleName);
+                if (targetPortal) targetPortal.style.display = 'block';
+            } else if (portalPages.length === 1) {
+                portalPages[0].style.display = 'block';
+            }
+
             renderAllUI();
             if (roleName === 'kasir') {
                 const isAuth = !!(state.authenticatedKasirOutlet && state.outlets.includes(state.authenticatedKasirOutlet));
@@ -537,32 +515,126 @@
         function switchOwnerPoinSubTab(tabName) { const memberPane = document.getElementById('owner-poin-sub-member'); const rewardPane = document.getElementById('owner-poin-sub-reward'); const ratePane = document.getElementById('owner-poin-sub-rate'); const redemptionsPane = document.getElementById('owner-poin-sub-redemptions'); if (memberPane) memberPane.style.display = tabName === 'member' ? 'block' : 'none'; if (rewardPane) rewardPane.style.display = tabName === 'reward' ? 'block' : 'none'; if (ratePane) ratePane.style.display = tabName === 'rate' ? 'block' : 'none'; if (redemptionsPane) redemptionsPane.style.display = tabName === 'redemptions' ? 'block' : 'none'; document.querySelectorAll('#owner-poin-subnav .nav-link').forEach(el => { el.classList.remove('active', 'bg-purple-light', 'text-brand-purple', 'border-purple-200'); el.classList.add('border'); }); if (window.event && window.event.currentTarget) { window.event.currentTarget.classList.add('active', 'bg-purple-light', 'text-brand-purple', 'border-purple-200'); } if (tabName === 'rate') { const rateInput = document.getElementById('owner-points-rate-input'); if (rateInput) rateInput.value = state.pointsEarnRate; updatePointsRateExample(); renderOwnerProductPointsTable(); } else if (tabName === 'redemptions') { renderOwnerRedemptionsTable(); } }
         function switchCustView(viewName) { document.querySelectorAll('.cust-view').forEach(el => el.style.display = 'none'); document.querySelectorAll('.navbar-custom .nav-link').forEach(el => el.classList.remove('active')); document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active')); const target = document.getElementById('cust-view-' + viewName); if (target) target.style.display = 'block'; const navTarget = document.getElementById('cust-nav-' + viewName); if (navTarget) navTarget.classList.add('active'); const mobileNavTarget = document.getElementById('mobile-nav-' + viewName); if (mobileNavTarget) mobileNavTarget.classList.add('active'); const mobileBottomNav = document.querySelector('.mobile-bottom-nav'); const custNavContent = document.getElementById('custNavContent'); const custToggler = document.querySelector('.navbar-toggler'); if (viewName === 'login') { if (mobileBottomNav) mobileBottomNav.style.setProperty('display', 'none', 'important'); if (custNavContent) custNavContent.style.setProperty('display', 'none', 'important'); if (custToggler) custToggler.style.setProperty('display', 'none', 'important'); } else { if (mobileBottomNav) mobileBottomNav.style.removeProperty('display'); if (custNavContent) custNavContent.style.removeProperty('display'); if (custToggler) custToggler.style.removeProperty('display'); } if (viewName === 'checkout') prefillCheckoutForm(); if (viewName === 'poin') renderCustomerPointsPage(); if (viewName === 'akun') renderCustomerProfilePage(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function updateStoreHoursStatus() { const now = new Date(); const currentHour = now.getHours(); state.isStoreOpen = (currentHour >= 6 && currentHour < 20); const alertEl = document.getElementById('closed-hours-alert'); const labelEl = document.getElementById('store-hours-label'); const mobileLabelEl = document.getElementById('store-hours-label-mobile'); if (state.isStoreOpen) { if (alertEl) alertEl.style.display = 'none'; if (labelEl) labelEl.innerHTML = '<span id="store-hours-dot" class="d-inline-block rounded-circle bg-success" style="width:8px;height:8px;"></span> BUKA (06.00 - 20.00)'; if (mobileLabelEl) mobileLabelEl.innerHTML = '<span id="store-hours-dot-mobile" class="d-inline-block rounded-circle bg-success" style="width:7px;height:7px;"></span> BUKA'; } else { if (alertEl) alertEl.style.display = 'block'; if (labelEl) labelEl.innerHTML = '<span id="store-hours-dot" class="d-inline-block rounded-circle bg-danger" style="width:8px;height:8px;"></span> TUTUP (Jam 20.00)'; if (mobileLabelEl) mobileLabelEl.innerHTML = '<span id="store-hours-dot-mobile" class="d-inline-block rounded-circle bg-danger" style="width:7px;height:7px;"></span> TUTUP'; } }
-        function getTodayDateString() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function getYesterdayDateString() { const d = new Date(); d.setDate(d.getDate() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        function getTodayDateString() {
+            try {
+                const d = new Date();
+                const wib = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+                return `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, '0')}-${String(wib.getDate()).padStart(2, '0')}`;
+            } catch(e) {
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+        }
+        function getYesterdayDateString() {
+            try {
+                const d = new Date();
+                const wib = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+                wib.setDate(wib.getDate() - 1);
+                return `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, '0')}-${String(wib.getDate()).padStart(2, '0')}`;
+            } catch(e) {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+        }
+        function saveOutletStockToStorage() {
+            try {
+                localStorage.setItem('mamamyuk_outlet_stock', JSON.stringify(state.outletStock));
+            } catch(e) {}
+            try {
+                fetch('/api/outlet-stock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ outlet_stock: state.outletStock })
+                });
+            } catch(e) {}
+        }
         function purgeOldPreOrders() { const todayStr = getTodayDateString(); const yesterdayStr = getYesterdayDateString(); let changed = false; state.preOrders = (state.preOrders || []).filter(order => { if ((order.payMethod === 'Midtrans' || order.payMethod === 'Transfer') && !order.isPaid) { changed = true; return false; } if (!order.date) { order.date = todayStr; return true; } if (order.date === todayStr || order.date === yesterdayStr) { return true; } changed = true; return false; }); if (changed) savePreOrdersToStorage(); }
         function checkAndResetDailySalesRecords() {
             const todayStr = getTodayDateString();
             if (!state.outletSalesRecords || typeof state.outletSalesRecords !== 'object' || Array.isArray(state.outletSalesRecords)) {
                 state.outletSalesRecords = {};
             }
-            let changed = false;
+            if (!state.outletStock || typeof state.outletStock !== 'object' || Array.isArray(state.outletStock)) {
+                state.outletStock = {};
+            }
+            let salesChanged = false;
+            let stockChanged = false;
+
             (state.outlets || []).forEach(outName => {
                 if (!state.outletSalesRecords[outName]) {
                     state.outletSalesRecords[outName] = { _date: todayStr };
-                    changed = true;
+                    salesChanged = true;
                 } else if (state.outletSalesRecords[outName]._date && state.outletSalesRecords[outName]._date !== todayStr) {
                     const photos = state.outletSalesRecords[outName]._photos || [];
                     state.outletSalesRecords[outName] = { _date: todayStr, _photos: photos };
-                    changed = true;
+                    salesChanged = true;
                 } else if (!state.outletSalesRecords[outName]._date) {
                     state.outletSalesRecords[outName]._date = todayStr;
-                    changed = true;
+                    salesChanged = true;
+                }
+
+                if (!state.outletStock[outName]) {
+                    state.outletStock[outName] = { _date: todayStr };
+                    stockChanged = true;
+                } else if (state.outletStock[outName]._date && state.outletStock[outName]._date !== todayStr) {
+                    state.outletStock[outName] = { _date: todayStr };
+                    stockChanged = true;
+                } else if (!state.outletStock[outName]._date) {
+                    state.outletStock[outName]._date = todayStr;
+                    stockChanged = true;
                 }
             });
-            if (changed) saveSalesRecordsToStorage();
+            if (salesChanged) saveSalesRecordsToStorage();
+            if (stockChanged) saveOutletStockToStorage();
         }
         function confirmResetAllOrders() { Swal.fire({ icon: 'warning', title: 'Bersihkan Semua Pesanan Hari Ini?', text: 'Seluruh pesanan per outlet hari ini akan dihapus agar data baru besok bersih.', showCancelButton: true, confirmButtonText: 'Ya, Bersihkan', cancelButtonText: 'Batal', confirmButtonColor: '#dc3545' }).then(res => { if (res.isConfirmed) { state.preOrders = []; savePreOrdersToStorage(); renderAllUI(); Swal.fire({ icon: 'success', title: 'Pesanan Dibersihkan!', text: 'Seluruh pesanan hari ini berhasil dihapus.', timer: 1500, showConfirmButton: false }); } }); }
-        function renderAllUI() { purgeOldPreOrders(); checkAndResetDailySalesRecords(); renderOutletDropdowns(); renderHomeProducts(); renderCatalogProducts(); renderCartUI(); renderCustomerHistory(); renderCustomerAuthArea(); renderCustomerPointsPage(); renderCustomerProfilePage(); renderKasirPreOrders(); renderKasirLeftoverTable(); renderPosProductsGrid(); renderAdminProducts('adm-products-tbody', true); renderAdminProduction(); renderAdminInventory(); renderAdminDailyMenuGrid(); renderAdminOutletReports(); renderAdminPesananPerOutlet(); renderOwnerDashboard(); renderOwnerDailyMenuGrid(); renderOwnerProducts(); renderOwnerPreOrders(); renderOwnerProduction(); renderOwnerInventory(); renderOwnerOutletReports(); renderOwnerResetPasswordTable(); renderOwnerOutletsTable(); renderOwnerMembersTable(); renderOwnerRewardsTable(); renderOwnerProductPointsTable(); renderOwnerExpenses(); renderAdminOutletStockTable(); renderOwnerRedemptionsTable(); }
+        function safeCall(fn, ...args) {
+            try {
+                if (typeof fn === 'function') fn(...args);
+            } catch (err) {
+                console.error("UI Render Error:", err);
+            }
+        }
+        function renderAllUI() {
+            safeCall(purgeOldPreOrders);
+            safeCall(checkAndResetDailySalesRecords);
+            safeCall(renderOutletDropdowns);
+            safeCall(renderHomeProducts);
+            safeCall(renderCatalogProducts);
+            safeCall(renderCartUI);
+            safeCall(renderCustomerHistory);
+            safeCall(renderCustomerAuthArea);
+            safeCall(renderCustomerPointsPage);
+            safeCall(renderCustomerProfilePage);
+            safeCall(renderKasirPreOrders);
+            safeCall(renderKasirLeftoverTable);
+            safeCall(renderPosProductsGrid);
+            safeCall(renderAdminProducts, 'adm-products-tbody', true);
+            safeCall(renderAdminProduction);
+            safeCall(renderAdminInventory);
+            safeCall(renderAdminDailyMenuGrid);
+            safeCall(renderAdminOutletReports);
+            safeCall(renderAdminPesananPerOutlet);
+            safeCall(renderOwnerDashboard);
+            safeCall(renderOwnerDailyMenuGrid);
+            safeCall(renderOwnerProducts);
+            safeCall(renderOwnerPreOrders);
+            safeCall(renderOwnerProduction);
+            safeCall(renderOwnerInventory);
+            safeCall(renderOwnerOutletReports);
+            safeCall(renderOwnerResetPasswordTable);
+            safeCall(renderOwnerOutletsTable);
+            safeCall(renderOwnerMembersTable);
+            safeCall(renderOwnerRewardsTable);
+            safeCall(renderOwnerProductPointsTable);
+            safeCall(renderOwnerExpenses);
+            safeCall(renderAdminOutletStockTable);
+            safeCall(renderOwnerRedemptionsTable);
+        }
         function getTomorrowDayName() { const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']; const nextIndex = (new Date().getDay() + 1) % 7; return days[nextIndex]; }
         function getTomorrowProducts() { const tomorrowName = getTomorrowDayName(); const config = state.dailyMenu.find(d => (d.day || '').toLowerCase() === tomorrowName.toLowerCase()); if (!config || !Array.isArray(config.productIds) || config.productIds.length === 0) { return []; } const activeIds = config.productIds.map(String); return state.products.filter(p => activeIds.includes(String(p.id)) && p.status === 'Aktif'); }
         function getTodayProducts() { const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']; const todayName = days[new Date().getDay()]; const todayConfig = (state.dailyMenu || []).find(d => (d.day || '').toLowerCase() === todayName.toLowerCase()); if (todayConfig && Array.isArray(todayConfig.productIds) && todayConfig.productIds.length > 0) { const activeIds = todayConfig.productIds.map(String); const filtered = state.products.filter(p => activeIds.includes(String(p.id)) && p.status === 'Aktif'); if (filtered.length > 0) return filtered; } return state.products.filter(p => p.status === 'Aktif'); }
@@ -576,7 +648,7 @@
             grid.innerHTML = days.map(day => {
                 let menuConfig = (state.dailyMenu || []).find(d => (d.day || d.day_name || '').trim().toLowerCase() === day.toLowerCase());
                 let pIds = menuConfig ? (menuConfig.productIds || menuConfig.product_ids || []).map(String) : [];
-                let assignedProducts = state.products.filter(p => pIds.includes(String(p.id)));
+                let assignedProducts = (state.products || []).filter(p => p && p.id && pIds.includes(String(p.id)));
                 return `
                     <div class="col-md-3 mb-3">
                         <div class="card-custom p-3 h-100 d-flex flex-column justify-content-between">
@@ -589,28 +661,20 @@
                                     ${assignedProducts.length > 0 ? assignedProducts.map(ap => `
                                         <li class="mb-2 border-bottom pb-1">
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="fw-bold text-dark fs-8">${ap.name}</span>
-                                                <span class="badge ${ap.stock > 0 ? 'bg-primary' : 'bg-danger'} fs-8">${ap.stock || 0} Cup</span>
+                                                <span class="fw-bold text-dark fs-8">${ap.name || 'Produk'}</span>
                                             </div>
                                         </li>
                                     `).join('') : '<li class="text-muted fs-8 fst-italic py-2">Belum ada menu di hari ini</li>'}
                                 </ul>
                             </div>
                             <button class="btn btn-sm btn-outline-purple w-100 fw-bold py-2" onclick="editDailyMenuModal('${day}')">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit Menu & Stok ${day}
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit Menu ${day}
                             </button>
                         </div>
                     </div>`;
             }).join('');
         }
         function renderOwnerDailyMenuGrid() { renderAdminDailyMenuGrid('own-daily-menu-grid'); }
-        function toggleStockInputDisabled(prodId) {
-            const chk = document.getElementById('chk-' + prodId);
-            const input = document.getElementById('stock-input-' + prodId);
-            if (chk && input) {
-                input.disabled = !chk.checked;
-            }
-        }
         function editDailyMenuModal(dayName) {
             let menuConfig = (state.dailyMenu || []).find(d => (d.day || d.day_name || '').trim().toLowerCase() === dayName.toLowerCase());
             let currentIds = menuConfig ? (menuConfig.productIds || menuConfig.product_ids || []).map(String) : [];
@@ -620,43 +684,33 @@
                     <div class="p-2 border rounded bg-light mb-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="form-check text-start mb-0">
-                                <input class="form-check-input menu-chk" type="checkbox" value="${p.id}" id="chk-${p.id}" ${isChecked ? 'checked' : ''} onchange="toggleStockInputDisabled('${p.id}')">
+                                <input class="form-check-input menu-chk" type="checkbox" value="${p.id}" id="chk-${p.id}" ${isChecked ? 'checked' : ''}>
                                 <label class="form-check-label fw-bold fs-7 ms-2 cursor-pointer" for="chk-${p.id}">
                                     ${p.name} <span class="text-brand-purple fw-bold fs-8">(Rp ${p.price.toLocaleString('id-ID')})</span>
                                 </label>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2 mt-2 ms-4">
-                            <span class="fs-8 text-secondary fw-semibold"><i class="fa-solid fa-boxes-stacked me-1"></i> Stok Ready Harian:</span>
-                            <input type="number" id="stock-input-${p.id}" class="form-control form-control-sm menu-stock-input fw-bold" value="${p.stock || 0}" min="0" style="width: 100px;" ${isChecked ? '' : 'disabled'}>
-                            <span class="fs-8 text-muted">Cup</span>
-                        </div>
                     </div>`;
             }).join('');
 
             Swal.fire({
-                title: `Atur Menu & Stok Harian - ${dayName}`,
+                title: `Atur Menu Rotasi - ${dayName}`,
                 html: `
-                    <div class="text-start fs-7 text-muted mb-3">Centang varian Mamam Yuk untuk hari <b>${dayName}</b> dan atur jumlah <b>Stok Ready Harian (Cup)</b>:</div>
+                    <div class="text-start fs-7 text-muted mb-3">Centang varian produk Mamam Yuk yang akan disajikan pada hari <b>${dayName}</b> (Stok per cabang diatur pada tab <b>Persediaan Stok</b>):</div>
                     <div style="max-height:340px; overflow-y:auto;" class="px-1 text-start">${itemsHtml}</div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Menu & Stok',
+                confirmButtonText: '<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Menu ${dayName}',
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#B57EDC',
                 preConfirm: () => {
                     const selectedCheckboxes = Array.from(document.querySelectorAll('.menu-chk:checked'));
                     const selectedIds = selectedCheckboxes.map(cb => cb.value);
-                    const stockUpdates = {};
-                    selectedIds.forEach(id => {
-                        const stockInput = document.getElementById('stock-input-' + id);
-                        stockUpdates[id] = stockInput ? (parseInt(stockInput.value) || 0) : 0;
-                    });
-                    return { selectedIds, stockUpdates };
+                    return { selectedIds };
                 }
             }).then(result => {
                 if (result.isConfirmed && result.value) {
-                    const { selectedIds, stockUpdates } = result.value;
+                    const { selectedIds } = result.value;
                     startLoading();
                     fetch('/api/daily-menu', {
                         method: 'POST',
@@ -671,38 +725,18 @@
                         } else {
                             state.dailyMenu.push({ day: dayName, productIds: selectedIds });
                         }
-
-                        const updatePromises = Object.keys(stockUpdates).map(prodId => {
-                            const newStockVal = stockUpdates[prodId];
-                            const p = state.products.find(x => x.id == prodId);
-                            if (p) {
-                                p.stock = newStockVal;
-                                p.initialStock = newStockVal;
-                            }
-                            return fetch('/api/products/' + prodId, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify({ stock: newStockVal })
-                            }).catch(() => {});
-                        });
-
-                        return Promise.all(updatePromises);
-                    }).then(() => {
                         endLoading();
                         renderAllUI();
                         Swal.fire({
                             icon: 'success',
-                            title: 'Menu & Stok Diperbarui',
-                            text: `Rotasi menu & stok ready untuk hari ${dayName} berhasil disimpan!`,
-                            timer: 1500,
+                            title: 'Menu Rotasi Diperbarui',
+                            text: `Rotasi menu untuk hari ${dayName} berhasil disimpan! Pengaturan stok ready cabang dapat diatur di tab "Persediaan Stok".`,
+                            timer: 1800,
                             showConfirmButton: false
                         });
                     }).catch(err => {
                         endLoading();
-                        Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: err.message || 'Gagal menyimpan stok.' });
+                        Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: err.message || 'Gagal menyimpan menu.' });
                     });
                 }
             });
@@ -714,6 +748,38 @@
             const norm1 = String(orderOutlet).replace(/\s+/g, '').toLowerCase();
             const norm2 = String(targetFilter).replace(/\s+/g, '').toLowerCase();
             return norm1 === norm2 || norm1.includes(norm2) || norm2.includes(norm1);
+        }
+
+        function getMatchingOutletStockKeys(outletName) {
+            if (!outletName) return [];
+            if (!state.outletStock || typeof state.outletStock !== 'object' || Array.isArray(state.outletStock)) {
+                state.outletStock = {};
+            }
+            const keys = new Set();
+            keys.add(outletName);
+            Object.keys(state.outletStock).forEach(k => {
+                if (isOutletMatch(k, outletName)) keys.add(k);
+            });
+            (state.outlets || []).forEach(oName => {
+                if (isOutletMatch(oName, outletName)) keys.add(oName);
+            });
+            return Array.from(keys);
+        }
+
+        function getMatchingSalesRecordKeys(outletName) {
+            if (!outletName) return [];
+            if (!state.outletSalesRecords || typeof state.outletSalesRecords !== 'object' || Array.isArray(state.outletSalesRecords)) {
+                state.outletSalesRecords = {};
+            }
+            const keys = new Set();
+            keys.add(outletName);
+            Object.keys(state.outletSalesRecords).forEach(k => {
+                if (isOutletMatch(k, outletName)) keys.add(k);
+            });
+            (state.outlets || []).forEach(oName => {
+                if (isOutletMatch(oName, outletName)) keys.add(oName);
+            });
+            return Array.from(keys);
         }
 
         function computeProductionNumbers(productId, outletFilter) {
@@ -1750,7 +1816,6 @@
                 `
             });
         }
-        function changeKasirOutlet(outletName) { state.kasirActiveOutlet = outletName; const badge = document.getElementById('kasir-active-outlet-badge'); if (badge) { badge.innerHTML = `<i class="fa-solid fa-location-dot me-1 text-danger"></i> ${outletName}`; } renderKasirPreOrders(); renderKasirLeftoverTable(); renderPosProductsGrid(); Swal.fire({ icon: 'info', title: 'Cabang Kasir Diperbarui', text: 'Kasir aktif bertugas di: ' + outletName, timer: 1200, showConfirmButton: false }); }
         
         async function saveSalesRecordsToStorage() {
             try {
@@ -1853,12 +1918,28 @@
                 return ` <div class="col-6 mb-2"><div class="card p-2 border text-center ${isOutOfStock ? 'bg-light opacity-50' : 'cursor-pointer bg-light h-100'}" ${isOutOfStock ? '' : `onclick="addPosCart('${p.id}')"`}>${productThumbHtml(p, 56)}<div class="fw-bold fs-8 mt-1 text-dark">${p.name}</div><div class="text-brand-purple fw-extrabold fs-8">Rp ${p.price.toLocaleString('id-ID')}</div><div class="mt-1">${isOutOfStock ? '<span class="badge bg-danger fs-8">STOK HABIS</span>' : `<span class="badge bg-primary fs-8"><i class="fa-solid fa-boxes-stacked me-1"></i> Stok: ${stockVal} Cup</span>`}</div></div></div>`;
             }).join('');
         }
-        function addPosCart(prodId) { const p = state.products.find(x => x.id == prodId); if (!p) return; const currentStock = getOutletStock(state.kasirActiveOutlet, p); const exist = state.posCart.find(x => x.productId == prodId); const currentCartQty = exist ? exist.qty : 0; if (currentCartQty + 1 > currentStock) { Swal.fire({ icon: 'warning', title: 'Stok Tidak Cukup!', text: `Stok ready ${p.name} untuk ${state.kasirActiveOutlet} hanya tersisa ${currentStock} cup.` }); return; } if (exist) { exist.qty += 1; } else { state.posCart.push({ productId: p.id, name: p.name, price: p.price, qty: 1 }); } renderPosCartList(); }
+        function addPosCart(prodId) {
+            const p = state.products.find(x => isSameProductId(x.id, prodId));
+            if (!p) return;
+            const currentStock = getOutletStock(state.kasirActiveOutlet, p);
+            const exist = state.posCart.find(x => isSameProductId(x.productId, prodId));
+            const currentCartQty = exist ? exist.qty : 0;
+            if (currentCartQty + 1 > currentStock) {
+                Swal.fire({ icon: 'warning', title: 'Stok Tidak Cukup!', text: `Stok ready ${p.name} untuk ${state.kasirActiveOutlet} hanya tersisa ${currentStock} cup.` });
+                return;
+            }
+            if (exist) {
+                exist.qty += 1;
+            } else {
+                state.posCart.push({ productId: p.id, name: p.name, price: p.price, qty: 1 });
+            }
+            renderPosCartList();
+        }
         function updatePosCartQty(prodId, delta) {
-            const item = state.posCart.find(x => x.productId == prodId);
+            const item = state.posCart.find(x => isSameProductId(x.productId, prodId));
             if (!item) return;
             if (delta > 0) {
-                const p = state.products.find(x => x.id == prodId);
+                const p = state.products.find(x => isSameProductId(x.id, prodId));
                 const currentStock = p ? getOutletStock(state.kasirActiveOutlet, p) : 999;
                 if (item.qty + 1 > currentStock) {
                     Swal.fire({ icon: 'warning', title: 'Stok Tidak Cukup!', text: `Stok ready ${item.name} untuk ${state.kasirActiveOutlet} hanya tersisa ${currentStock} cup.` });
@@ -1868,7 +1949,7 @@
             } else {
                 item.qty += delta;
                 if (item.qty <= 0) {
-                    state.posCart = state.posCart.filter(x => x.productId != prodId);
+                    state.posCart = state.posCart.filter(x => !isSameProductId(x.productId, prodId));
                 }
             }
             renderPosCartList();
@@ -2037,32 +2118,62 @@
             const activeOutlet = state.kasirActiveOutlet || 'Outlet Kasir';
             const purchasedItems = [...state.posCart];
 
-            if (!state.outletSalesRecords[activeOutlet]) {
-                state.outletSalesRecords[activeOutlet] = {};
-            }
+            const stockKeys = getMatchingOutletStockKeys(activeOutlet);
+            const salesKeys = getMatchingSalesRecordKeys(activeOutlet);
+            const todayStr = getTodayDateString();
 
-            if (payMethod === 'qris') {
-                state.outletSalesRecords[activeOutlet]._qrisTotal = (state.outletSalesRecords[activeOutlet]._qrisTotal || 0) + finalTotal;
-            } else {
-                state.outletSalesRecords[activeOutlet]._cashTotal = (state.outletSalesRecords[activeOutlet]._cashTotal || 0) + finalTotal;
-            }
+            stockKeys.forEach(k => {
+                if (!state.outletStock[k] || typeof state.outletStock[k] !== 'object') {
+                    state.outletStock[k] = {};
+                }
+                state.outletStock[k]._date = todayStr;
+            });
 
-            const stockPromises = [];
-            state.posCart.forEach(item => {
-                const p = state.products.find(x => x.id == item.productId);
-                if (p) {
-                    const curStock = getOutletStock(activeOutlet, p);
-                    const newStock = Math.max(0, curStock - item.qty);
-                    stockPromises.push(setOutletStock(activeOutlet, p, newStock));
-                    p.stock = newStock;
-                    if (!state.outletSalesRecords[activeOutlet][item.productId]) {
-                        state.outletSalesRecords[activeOutlet][item.productId] = { sold: 0 };
-                    }
-                    state.outletSalesRecords[activeOutlet][item.productId].sold += item.qty;
+            salesKeys.forEach(sk => {
+                if (!state.outletSalesRecords[sk] || typeof state.outletSalesRecords[sk] !== 'object') {
+                    state.outletSalesRecords[sk] = {};
+                }
+                state.outletSalesRecords[sk]._date = todayStr;
+                if (payMethod === 'qris') {
+                    state.outletSalesRecords[sk]._qrisTotal = (state.outletSalesRecords[sk]._qrisTotal || 0) + finalTotal;
+                } else {
+                    state.outletSalesRecords[sk]._cashTotal = (state.outletSalesRecords[sk]._cashTotal || 0) + finalTotal;
                 }
             });
 
-            await Promise.all(stockPromises);
+            state.posCart.forEach(item => {
+                const p = state.products.find(x => isSameProductId(x.id, item.productId));
+                if (p) {
+                    const curStock = getOutletStock(activeOutlet, p);
+                    const newStock = Math.max(0, curStock - item.qty);
+                    const numStock = Math.max(0, parseInt(newStock) || 0);
+
+                    const pIdStr = String(p.id);
+                    const itemPIdStr = String(item.productId);
+                    const altKeyStr = pIdStr.startsWith('PRD-') ? pIdStr.replace('PRD-', '') : ('PRD-' + pIdStr);
+
+                    stockKeys.forEach(k => {
+                        state.outletStock[k][pIdStr] = numStock;
+                        state.outletStock[k][altKeyStr] = numStock;
+                        if (itemPIdStr !== pIdStr && itemPIdStr !== altKeyStr) {
+                            state.outletStock[k][itemPIdStr] = numStock;
+                        }
+                    });
+
+                    salesKeys.forEach(sk => {
+                        const uniqueProdKeys = Array.from(new Set([pIdStr, altKeyStr, itemPIdStr].filter(Boolean)));
+                        uniqueProdKeys.forEach(prodK => {
+                            if (!state.outletSalesRecords[sk][prodK] || typeof state.outletSalesRecords[sk][prodK] !== 'object') {
+                                state.outletSalesRecords[sk][prodK] = { sold: 0 };
+                            }
+                            state.outletSalesRecords[sk][prodK].sold = (state.outletSalesRecords[sk][prodK].sold || 0) + item.qty;
+                        });
+                    });
+                }
+            });
+
+            window._lastLocalStockUpdate = Date.now();
+            await saveOutletStockToServer();
             await saveSalesRecordsToStorage();
 
             state.posCart = [];
@@ -2265,11 +2376,13 @@
                 const price = p.price || 0;
                 const pesanan = preorderCounts[pid] || 0;
                 const takenPreorder = takenPreorderCounts[pid] || 0;
-                const posWalkinSales = salesRec[pid] ? (salesRec[pid].sold || 0) : 0;
+                const altKey = pid.startsWith('PRD-') ? pid.replace('PRD-', '') : ('PRD-' + pid);
+                const posWalkinSales = (salesRec[pid] && salesRec[pid].sold !== undefined)
+                    ? Number(salesRec[pid].sold || 0)
+                    : ((salesRec[altKey] && salesRec[altKey].sold !== undefined) ? Number(salesRec[altKey].sold || 0) : 0);
                 const jualan = posWalkinSales + takenPreorder;
                 const remainingPosAllocated = getOutletStock(outName, p);
-                const initialPosAllocated = remainingPosAllocated + posWalkinSales;
-                const stok = initialPosAllocated + pesanan;
+                const stok = remainingPosAllocated + posWalkinSales + pesanan;
                 const sisa = Math.max(0, stok - jualan);
                 const itemTotal = jualan * price;
 
@@ -2643,40 +2756,30 @@
             if (!product) return 0;
             if (!state.outletStock || typeof state.outletStock !== 'object' || Array.isArray(state.outletStock)) state.outletStock = {};
             if (!outletName) outletName = (state.outlets && state.outlets[0]) ? state.outlets[0] : 'Outlet Utama';
-            
-            let stockMap = state.outletStock[outletName];
-            if (!stockMap) {
-                const matchKey = Object.keys(state.outletStock).find(k => isOutletMatch(k, outletName));
-                if (matchKey) {
-                    stockMap = state.outletStock[matchKey];
+
+            const matchingKeys = getMatchingOutletStockKeys(outletName);
+            const todayStr = getTodayDateString();
+            const pId = String(product.id);
+            const altKey = pId.startsWith('PRD-') ? pId.replace('PRD-', '') : ('PRD-' + pId);
+
+            for (const key of matchingKeys) {
+                const stockMap = state.outletStock[key];
+                if (stockMap && typeof stockMap === 'object') {
+                    if (stockMap._date && stockMap._date !== todayStr) continue;
+                    if (stockMap[pId] !== undefined) return Number(stockMap[pId]);
+                    if (stockMap[altKey] !== undefined) return Number(stockMap[altKey]);
                 }
             }
-            if (!stockMap) stockMap = {};
-
-            const pId = String(product.id);
-            if (stockMap[pId] !== undefined) {
-                return Number(stockMap[pId]);
-            }
-            const altKey = pId.startsWith('PRD-') ? pId.replace('PRD-', '') : ('PRD-' + pId);
-            if (stockMap[altKey] !== undefined) {
-                return Number(stockMap[altKey]);
-            }
-            return Number(product.stock !== undefined ? product.stock : 20);
+            return 0;
         }
-        async function setOutletStock(outletName, product, newStock) {
-            if (!product) return false;
-            if (!state.outletStock || typeof state.outletStock !== 'object' || Array.isArray(state.outletStock)) state.outletStock = {};
-            if (!outletName) outletName = (state.outlets && state.outlets[0]) ? state.outlets[0] : 'Outlet Utama';
-            if (!state.outletStock[outletName]) state.outletStock[outletName] = {};
-            const pId = String(product.id);
-            const numStock = Number(newStock);
-            state.outletStock[outletName][pId] = numStock;
-            const altKey = pId.startsWith('PRD-') ? pId.replace('PRD-', '') : ('PRD-' + pId);
-            if (state.outletStock[outletName][altKey] !== undefined) {
-                state.outletStock[outletName][altKey] = numStock;
-            }
-            try { localStorage.setItem('mamamyuk_outlet_stock', JSON.stringify(state.outletStock)); } catch(e){}
 
+        function getPosAvailableStock(outletName, product) {
+            return getOutletStock(outletName, product);
+        }
+
+        async function saveOutletStockToServer() {
+            window._lastLocalStockUpdate = Date.now();
+            saveOutletStockToStorage();
             try {
                 const res = await fetch('/api/outlet-stock', {
                     method: 'POST',
@@ -2690,7 +2793,7 @@
                     const data = await res.json().catch(() => ({}));
                     if (data.outlet_stock && typeof data.outlet_stock === 'object') {
                         state.outletStock = data.outlet_stock;
-                        try { localStorage.setItem('mamamyuk_outlet_stock', JSON.stringify(state.outletStock)); } catch(e){}
+                        saveOutletStockToStorage();
                     }
                 }
                 return res.ok;
@@ -2698,6 +2801,32 @@
                 console.error("Sync outlet stock error:", e);
                 return false;
             }
+        }
+
+        async function setOutletStock(outletName, product, newStock) {
+            if (!product) return false;
+            if (!state.outletStock || typeof state.outletStock !== 'object' || Array.isArray(state.outletStock)) state.outletStock = {};
+            if (!outletName) outletName = (state.outlets && state.outlets[0]) ? state.outlets[0] : 'Outlet Utama';
+
+            const keys = getMatchingOutletStockKeys(outletName);
+            const todayStr = getTodayDateString();
+            const pId = String(product.id);
+            const altKey = pId.startsWith('PRD-') ? pId.replace('PRD-', '') : ('PRD-' + pId);
+            const numStock = Math.max(0, parseInt(newStock) || 0);
+
+            product.stock = numStock;
+            product.initialStock = numStock;
+
+            keys.forEach(k => {
+                if (!state.outletStock[k] || typeof state.outletStock[k] !== 'object') {
+                    state.outletStock[k] = {};
+                }
+                state.outletStock[k]._date = todayStr;
+                state.outletStock[k][pId] = numStock;
+                state.outletStock[k][altKey] = numStock;
+            });
+
+            return await saveOutletStockToServer();
         }
         function renderAdminOutletStockTable() {
             const selEl = document.getElementById('adm-stock-outlet-select');
@@ -2738,7 +2867,8 @@
                     dayProducts.forEach(p => {
                         processedProdIds.add(String(p.id));
                         const curStock = getOutletStock(selectedOutlet, p);
-                        const isSaved = state.outletStock && state.outletStock[selectedOutlet] && (
+                        const todayStr = getTodayDateString();
+                        const isSaved = state.outletStock && state.outletStock[selectedOutlet] && (state.outletStock[selectedOutlet]._date === todayStr) && (
                             state.outletStock[selectedOutlet][String(p.id)] !== undefined ||
                             state.outletStock[selectedOutlet][String(p.id).startsWith('PRD-') ? String(p.id).replace('PRD-', '') : ('PRD-' + String(p.id))] !== undefined
                         );
@@ -4308,24 +4438,32 @@
 
                     const res = await fetch('/api/menu-data');
                     if (!res.ok) return;
+                    const contentType = res.headers.get("content-type") || "";
+                    if (!contentType.includes("application/json")) return;
                     const data = await res.json();
                     let dataChanged = false;
 
-                    if (data.outletStock && typeof data.outletStock === 'object' && !Array.isArray(data.outletStock)) {
-                        const newStockStr = JSON.stringify(data.outletStock);
-                        const oldStockStr = JSON.stringify(state.outletStock || {});
-                        if (newStockStr !== oldStockStr) {
-                            state.outletStock = data.outletStock;
-                            try { localStorage.setItem('mamamyuk_outlet_stock', newStockStr); } catch(e){}
-                            dataChanged = true;
+                    const isEditingOutletStock = window._outletStockEditing && Object.values(window._outletStockEditing).some(v => !!v);
+                    const recentlyUpdatedLocally = window._lastLocalStockUpdate && (Date.now() - window._lastLocalStockUpdate < 15000);
+
+                    if (!isEditingOutletStock && !recentlyUpdatedLocally) {
+                        if (data.outletStock && typeof data.outletStock === 'object' && !Array.isArray(data.outletStock)) {
+                            const newStockStr = JSON.stringify(data.outletStock);
+                            const oldStockStr = JSON.stringify(state.outletStock || {});
+                            if (newStockStr !== oldStockStr) {
+                                state.outletStock = data.outletStock;
+                                try { localStorage.setItem('mamamyuk_outlet_stock', newStockStr); } catch(e){}
+                                dataChanged = true;
+                            }
                         }
                     }
 
-                    if (data.outletSalesRecords && typeof data.outletSalesRecords === 'object' && !Array.isArray(data.outletSalesRecords)) {
-                        const newSalesStr = JSON.stringify(data.outletSalesRecords);
+                    const incomingSales = data.outletSalesRecords || data.salesRecords;
+                    if (incomingSales && typeof incomingSales === 'object' && !Array.isArray(incomingSales)) {
+                        const newSalesStr = JSON.stringify(incomingSales);
                         const oldSalesStr = JSON.stringify(state.outletSalesRecords || {});
                         if (newSalesStr !== oldSalesStr) {
-                            state.outletSalesRecords = data.outletSalesRecords;
+                            state.outletSalesRecords = incomingSales;
                             try { localStorage.setItem('mpasi_outlet_sales_records', newSalesStr); } catch(e){}
                             dataChanged = true;
                         }
@@ -4377,14 +4515,37 @@
                         }
                     }
 
-                    const isEditingOutletStock = window._outletStockEditing && Object.values(window._outletStockEditing).some(v => !!v);
-
-                    if (dataChanged && !isTyping && !isEditingOutletStock) {
+                    if (dataChanged && !isTyping && !isEditingOutletStock && !recentlyUpdatedLocally) {
                         renderAllUI();
                     }
                 } catch(e) {}
-            }, 3500);
+            }, 10000);
         }
 
-        document.addEventListener('DOMContentLoaded', function() { try { const savedGuest = (localStorage.getItem('mpasi_is_guest') === 'true'); if (savedGuest) state.isGuest = true; selectRolePortal(state.activeRole); renderAllUI(); if (state.activeRole === 'pelanggan') { if (!state.currentUser && !state.isGuest) { switchCustView('login'); } else { switchCustView('beranda'); } } updateStoreHoursStatus(); setInterval(updateStoreHoursStatus, 30000); startAutoSync(); } catch (err) { console.error("Render UI Error:", err); } finally { endLoading(); } }); window.onload = function() { endLoading(); }; setTimeout(endLoading, 800);
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const savedGuest = (localStorage.getItem('mpasi_is_guest') === 'true');
+                if (savedGuest) state.isGuest = true;
+                selectRolePortal(state.activeRole);
+                renderAllUI();
+                if (state.activeRole === 'pelanggan') {
+                    if (!state.currentUser && !state.isGuest) {
+                        switchCustView('login');
+                    } else {
+                        switchCustView('beranda');
+                    }
+                }
+                updateStoreHoursStatus();
+                setInterval(updateStoreHoursStatus, 30000);
+                startAutoSync();
+            } catch (err) {
+                console.error("Render UI Error:", err);
+            } finally {
+                endLoading();
+            }
+        });
+        window.onload = function() { endLoading(); };
+        setTimeout(endLoading, 300);
+        setTimeout(endLoading, 1000);
+        setTimeout(endLoading, 2500);
     </script>

@@ -38,6 +38,7 @@ Route::post('/api/redemptions/{id}/approve', [MpasiController::class, 'apiApprov
 Route::post('/api/redemptions/{id}/reject', [MpasiController::class, 'apiRejectRedemption']);
 Route::post('/points/rate', [MpasiController::class, 'updatePointsRate'])->name('mpasi.points.rate');
 Route::post('/api/settings/bg-image', [MpasiController::class, 'apiUpdateBgImage'])->name('mpasi.settings.bg-image');
+Route::post('/api/expenses', [MpasiController::class, 'apiSaveExpenses']);
 
 Route::get('/portal/login', [MpasiController::class, 'portalLoginPage'])->name('portal.login');
 Route::post('/portal/login', [MpasiController::class, 'portalLoginSubmit'])->name('portal.login.submit');

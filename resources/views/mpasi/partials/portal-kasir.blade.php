@@ -1,4 +1,4 @@
-<div id="role-portal-kasir" class="role-portal-page" style="display:none;">
+<div id="role-portal-kasir" class="role-portal-page">
     <div class="d-flex flex-column flex-md-row">
         <div class="role-sidebar p-3">
             <div class="d-flex align-items-center justify-content-between mb-3 px-2">

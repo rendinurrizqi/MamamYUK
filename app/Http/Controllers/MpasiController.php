@@ -264,90 +264,204 @@ class MpasiController extends Controller
 
     public function getMenuData()
     {
+        $todayWib = \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $outlets = Outlet::query()->orderBy('id')->get();
+
         $outletStockRaw = $this->getSetting('mamamyuk_outlet_stock', '{}');
         $outletStock = json_decode($outletStockRaw, true);
         if (!is_array($outletStock)) {
-            $outletStock = new \stdClass();
+            $outletStock = [];
+        }
+
+        $stockChanged = false;
+        foreach ($outlets as $o) {
+            $name = $o->name;
+            if (!isset($outletStock[$name]) || !is_array($outletStock[$name])) {
+                $outletStock[$name] = ['_date' => $todayWib];
+                $stockChanged = true;
+            } else if (($outletStock[$name]['_date'] ?? null) !== $todayWib) {
+                $outletStock[$name] = ['_date' => $todayWib];
+                $stockChanged = true;
+            }
+        }
+        if ($stockChanged) {
+            $this->setSetting('mamamyuk_outlet_stock', json_encode($outletStock));
         }
 
         $salesRecordsRaw = $this->getSetting('mamamyuk_sales_records', '{}');
         $salesRecords = json_decode($salesRecordsRaw, true);
         if (!is_array($salesRecords)) {
-            $salesRecords = new \stdClass();
+            $salesRecords = [];
+        }
+
+        $salesChanged = false;
+        foreach ($outlets as $o) {
+            $name = $o->name;
+            if (!isset($salesRecords[$name]) || !is_array($salesRecords[$name])) {
+                $salesRecords[$name] = ['_date' => $todayWib];
+                $salesChanged = true;
+            } else if (($salesRecords[$name]['_date'] ?? null) !== $todayWib) {
+                $photos = $salesRecords[$name]['_photos'] ?? [];
+                $salesRecords[$name] = ['_date' => $todayWib, '_photos' => $photos];
+                $salesChanged = true;
+            }
+        }
+        if ($salesChanged) {
+            $this->setSetting('mamamyuk_sales_records', json_encode($salesRecords));
+        }
+
+        $expensesRaw = $this->getSetting('mamamyuk_owner_expenses', '[]');
+        $expenses = json_decode($expensesRaw, true);
+        if (!is_array($expenses)) {
+            $expenses = [];
         }
 
         return response()->json([
             'products' => Product::query()->orderBy('id')->get(),
-            'outlets' => Outlet::query()->orderBy('id')->get(),
+            'outlets' => $outlets,
             'dailyMenus' => DailyMenu::query()->orderBy('id')->get(),
             'rewards' => PointReward::query()->where('is_active', true)->get(),
             'pointsEarnRate' => (int) ($this->getSetting('points_earn_rate', 1000)),
             'outletStock' => $outletStock,
             'outletSalesRecords' => $salesRecords,
             'preOrders' => $this->getFormattedPreOrders(),
+            'members' => Member::query()->orderBy('id')->get(),
+            'expenses' => $expenses,
         ]);
+    }
+
+    public function apiSaveExpenses(Request $request)
+    {
+        $expensesData = $request->input('expenses');
+        $incoming = is_array($expensesData) ? $expensesData : (is_string($expensesData) ? json_decode($expensesData, true) : []);
+        if (!is_array($incoming)) {
+            $incoming = [];
+        }
+        $value = json_encode($incoming);
+        $this->setSetting('mamamyuk_owner_expenses', $value);
+        return response()->json(['success' => true, 'expenses' => $incoming]);
+    }
+
+    private static function isOutletMatchPhp($name1, $name2): bool
+    {
+        if (empty($name1) || empty($name2)) return false;
+        if ($name1 === $name2) return true;
+        $norm1 = strtolower(preg_replace('/\s+/', '', $name1));
+        $norm2 = strtolower(preg_replace('/\s+/', '', $name2));
+        return $norm1 === $norm2 || str_contains($norm1, $norm2) || str_contains($norm2, $norm1);
     }
 
     public function apiSaveOutletStock(Request $request)
     {
-        $stockData = $request->input('outlet_stock');
-        $incoming = is_array($stockData) ? $stockData : (is_string($stockData) ? json_decode($stockData, true) : []);
-        if (!is_array($incoming)) {
-            $incoming = [];
-        }
+        try {
+            DB::statement('ALTER TABLE settings MODIFY value LONGTEXT NULL');
+        } catch (\Throwable $e) {}
 
-        $existingRaw = $this->getSetting('mamamyuk_outlet_stock', '{}');
-        $existing = json_decode($existingRaw, true);
-        if (!is_array($existing)) {
-            $existing = [];
-        }
+        return DB::transaction(function () use ($request) {
+            $todayWib = \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d');
+            $stockData = $request->input('outlet_stock');
+            $incoming = is_array($stockData) ? $stockData : (is_string($stockData) ? json_decode($stockData, true) : []);
+            if (!is_array($incoming)) {
+                $incoming = [];
+            }
 
-        foreach ($incoming as $outletName => $productsStock) {
-            if (is_array($productsStock)) {
-                if (!isset($existing[$outletName]) || !is_array($existing[$outletName])) {
-                    $existing[$outletName] = [];
-                }
-                foreach ($productsStock as $prodId => $qty) {
-                    $existing[$outletName][(string)$prodId] = (int)$qty;
+            $settingRow = Setting::query()->where('key', 'mamamyuk_outlet_stock')->lockForUpdate()->first();
+            $existingRaw = $settingRow ? $settingRow->value : '{}';
+            $existing = json_decode($existingRaw, true);
+            if (!is_array($existing)) {
+                $existing = [];
+            }
+
+            $dbOutlets = Outlet::query()->pluck('name')->toArray();
+
+            foreach ($incoming as $outletName => $productsStock) {
+                if (is_array($productsStock)) {
+                    $matchingKeys = [$outletName];
+                    foreach (array_unique(array_merge(array_keys($existing), $dbOutlets)) as $exName) {
+                        if (self::isOutletMatchPhp($exName, $outletName)) {
+                            $matchingKeys[] = $exName;
+                        }
+                    }
+                    $matchingKeys = array_unique($matchingKeys);
+
+                    foreach ($matchingKeys as $targetKey) {
+                        if (!isset($existing[$targetKey]) || !is_array($existing[$targetKey]) || (($existing[$targetKey]['_date'] ?? null) !== $todayWib)) {
+                            $existing[$targetKey] = ['_date' => $todayWib];
+                        }
+                        $existing[$targetKey]['_date'] = $todayWib;
+                        foreach ($productsStock as $prodId => $qty) {
+                            if ($prodId === '_date') continue;
+                            $existing[$targetKey][(string)$prodId] = (int)$qty;
+                        }
+                    }
                 }
             }
-        }
 
-        $value = json_encode($existing);
-        $this->setSetting('mamamyuk_outlet_stock', $value);
+            $value = json_encode($existing);
+            if ($settingRow) {
+                $settingRow->update(['value' => $value]);
+            } else {
+                Setting::query()->create(['key' => 'mamamyuk_outlet_stock', 'value' => $value]);
+            }
 
-        return response()->json(['success' => true, 'outlet_stock' => $existing]);
+            return response()->json(['success' => true, 'outlet_stock' => $existing]);
+        });
     }
 
     public function apiSaveSalesRecords(Request $request)
     {
-        $salesData = $request->input('sales_records');
-        $incoming = is_array($salesData) ? $salesData : (is_string($salesData) ? json_decode($salesData, true) : []);
-        if (!is_array($incoming)) {
-            $incoming = [];
-        }
+        try {
+            DB::statement('ALTER TABLE settings MODIFY value LONGTEXT NULL');
+        } catch (\Throwable $e) {}
 
-        $existingRaw = $this->getSetting('mamamyuk_sales_records', '{}');
-        $existing = json_decode($existingRaw, true);
-        if (!is_array($existing)) {
-            $existing = [];
-        }
+        return DB::transaction(function () use ($request) {
+            $todayWib = \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d');
+            $salesData = $request->input('sales_records');
+            $incoming = is_array($salesData) ? $salesData : (is_string($salesData) ? json_decode($salesData, true) : []);
+            if (!is_array($incoming)) {
+                $incoming = [];
+            }
 
-        foreach ($incoming as $outletName => $records) {
-            if (is_array($records)) {
-                if (!isset($existing[$outletName]) || !is_array($existing[$outletName])) {
-                    $existing[$outletName] = [];
-                }
-                foreach ($records as $key => $val) {
-                    $existing[$outletName][$key] = $val;
+            $settingRow = Setting::query()->where('key', 'mamamyuk_sales_records')->lockForUpdate()->first();
+            $existingRaw = $settingRow ? $settingRow->value : '{}';
+            $existing = json_decode($existingRaw, true);
+            if (!is_array($existing)) {
+                $existing = [];
+            }
+
+            $dbOutlets = Outlet::query()->pluck('name')->toArray();
+
+            foreach ($incoming as $outletName => $records) {
+                if (is_array($records)) {
+                    $matchingKeys = [$outletName];
+                    foreach (array_unique(array_merge(array_keys($existing), $dbOutlets)) as $exName) {
+                        if (self::isOutletMatchPhp($exName, $outletName)) {
+                            $matchingKeys[] = $exName;
+                        }
+                    }
+                    $matchingKeys = array_unique($matchingKeys);
+
+                    foreach ($matchingKeys as $targetKey) {
+                        if (!isset($existing[$targetKey]) || !is_array($existing[$targetKey]) || (($existing[$targetKey]['_date'] ?? null) !== $todayWib)) {
+                            $existing[$targetKey] = ['_date' => $todayWib];
+                        }
+                        $existing[$targetKey]['_date'] = $todayWib;
+                        foreach ($records as $key => $val) {
+                            $existing[$targetKey][$key] = $val;
+                        }
+                    }
                 }
             }
-        }
 
-        $value = json_encode($existing);
-        $this->setSetting('mamamyuk_sales_records', $value);
+            $value = json_encode($existing);
+            if ($settingRow) {
+                $settingRow->update(['value' => $value]);
+            } else {
+                Setting::query()->create(['key' => 'mamamyuk_sales_records', 'value' => $value]);
+            }
 
-        return response()->json(['success' => true, 'sales_records' => $existing]);
+            return response()->json(['success' => true, 'sales_records' => $existing]);
+        });
     }
 
     private function findPreOrder($id)

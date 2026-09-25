@@ -177,7 +177,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.92);
             z-index: 9999;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
