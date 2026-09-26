@@ -618,6 +618,11 @@ class MpasiController extends Controller
         if ($isMidtrans) {
             $serverKey = env('MIDTRANS_SERVER_KEY', 'SB-Mid-server-test-mamamyuk-2026');
             $authHeader = 'Basic ' . base64_encode($serverKey . ':');
+            $isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+            $snapApiUrl = $isProduction
+                ? 'https://app.midtrans.com/snap/v1/transactions'
+                : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+
 
             $midtransPayload = [
                 'transaction_details' => [
@@ -628,6 +633,9 @@ class MpasiController extends Controller
                     'first_name' => $validated['customer_name'],
                     'phone' => $validated['whatsapp'],
                 ],
+                'enabled_payments' => [
+                    'gopay', 'shopeepay', 'qris', 'bca_va', 'bni_va', 'bri_va', 'mandiri_va', 'permata_va', 'other_va', 'credit_card'
+                ],
             ];
 
             try {
@@ -635,7 +643,7 @@ class MpasiController extends Controller
                     'Authorization' => $authHeader,
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                ])->post('https://app.sandbox.midtrans.com/snap/v1/transactions', $midtransPayload);
+                ])->post($snapApiUrl, $midtransPayload);
 
                 $resData = $response->json();
                 if (isset($resData['token'])) {
@@ -647,9 +655,13 @@ class MpasiController extends Controller
             }
 
             if (!$snapToken) {
-                $snapToken = 'SNAP-MOCK-' . $preOrder->id . '-' . rand(1000, 9999);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mendapatkan Snap Token dari Midtrans. Silakan periksa kunci API Midtrans Anda.',
+                ], 400);
             }
         }
+
 
         if (!$isMidtrans) {
             $this->sendWaNotification($preOrder, 'BERHASIL DICATAT (COD/Transfer)');
