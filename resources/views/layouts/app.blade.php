@@ -89,7 +89,18 @@
             flex-shrink: 0;
             transition: all 0.3s ease;
         }
+        @media (min-width: 768px) {
+            .role-sidebar {
+                position: sticky;
+                top: 0;
+                height: 100vh;
+                max-height: 100vh;
+                overflow-y: auto;
+                align-self: flex-start;
+            }
+        }
         .role-sidebar .nav-link {
+
             color: #F5EBFB;
             padding: 12px 16px;
             border-radius: var(--radius-md);
