@@ -55,7 +55,7 @@
                                     <h6 class="fw-bold text-brand-purple border-bottom pb-2 mb-3"><i class="fa-solid fa-store me-2"></i> Performa Cepat Per Cabang (Hari Ini)</h6>
                                     <div class="table-responsive">
                                         <table class="table align-middle fs-7 mb-0">
-                                            <thead class="bg-light"><tr><th>Cabang Outlet</th><th>Omset (Rp)</th><th>Porsi Terjual</th></tr></thead>
+                                            <thead class="bg-light"><tr><th>Cabang Outlet</th><th class="text-end">Omset (Rp)</th><th class="text-end text-success">QRIS (Rp)</th><th class="text-end text-warning text-dark">Cash (Rp)</th><th class="text-center">Porsi Terjual</th></tr></thead>
                                             <tbody id="owner-dashboard-outlet-tbody"></tbody>
                                         </table>
                                     </div>
@@ -253,6 +253,8 @@
                                             <th class="py-2 px-3 text-center">Porsi Terjual</th>
                                             <th class="py-2 px-3 text-center">Sisa</th>
                                             <th class="py-2 px-3 text-end">Rugi (Rp)</th>
+                                            <th class="py-2 px-3 text-end">QRIS (Rp)</th>
+                                            <th class="py-2 px-3 text-end">Cash (Rp)</th>
                                             <th class="py-2 px-3 text-end">Omset (Rp)</th>
                                             <th class="py-2 px-3 text-center">Aksi</th>
                                         </tr>

@@ -237,6 +237,8 @@
                                             <th class="py-2 px-3 text-center">Porsi Terjual</th>
                                             <th class="py-2 px-3 text-center">Sisa</th>
                                             <th class="py-2 px-3 text-end">Rugi (Rp)</th>
+                                            <th class="py-2 px-3 text-end">QRIS (Rp)</th>
+                                            <th class="py-2 px-3 text-end">Cash (Rp)</th>
                                             <th class="py-2 px-3 text-end">Omset (Rp)</th>
                                             <th class="py-2 px-3 text-center">Aksi</th>
                                         </tr>
