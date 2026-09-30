@@ -1031,7 +1031,82 @@
         }
         function bindImagePreview(inputId, previewImgId) { const inputEl = document.getElementById(inputId); const previewEl = document.getElementById(previewImgId); if (!inputEl || !previewEl) return; inputEl.addEventListener('change', () => { const file = inputEl.files && inputEl.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { previewEl.src = reader.result; previewEl.style.display = 'block'; }; reader.readAsDataURL(file); }); }
         function editProductModal(prodId) { const p = state.products.find(x => x.id == prodId); if (!p) return; Swal.fire({ title: 'Edit Varian Mamam Yuk', html: `<div class="text-start mb-2"><label class="fw-bold fs-7 d-block mb-1">Foto Produk (opsional)</label><img id="swal-eimg-preview" src="${p.image || ''}" class="rounded-3 mb-2" style="width:100%; max-height:150px; object-fit:cover; ${p.image ? '' : 'display:none;'}"><input id="swal-eimage" type="file" accept="image/*" class="swal2-file"></div><input id="swal-ename" class="swal2-input" placeholder="Nama Varian Mamam Yuk" value="${p.name}"><input id="swal-eprice" class="swal2-input" type="number" placeholder="Harga / Cup (Rp)" value="${p.price}"><select id="swal-ecategory" class="swal2-select"><option value="Bubur" ${p.category === 'Bubur' ? 'selected' : ''}>Bubur</option><option value="Snack" ${p.category === 'Snack' ? 'selected' : ''}>Snack</option></select><select id="swal-eage" class="swal2-select"><option value="6+ Bulan" ${p.age === '6+ Bulan' ? 'selected' : ''}>6+ Bulan</option><option value="8+ Bulan" ${p.age === '8+ Bulan' ? 'selected' : ''}>8+ Bulan</option><option value="12+ Bulan" ${p.age === '12+ Bulan' ? 'selected' : ''}>12+ Bulan</option></select><input id="swal-eingredients" class="swal2-input" placeholder="Komposisi Bahan" value="${p.ingredients}"><select id="swal-estatus" class="swal2-select"><option value="Aktif" ${p.status === 'Aktif' ? 'selected' : ''}>Aktif</option><option value="Nonaktif" ${p.status === 'Nonaktif' ? 'selected' : ''}>Nonaktif</option></select>`, focusConfirm: false, showCancelButton: true, confirmButtonText: 'Simpan Perubahan', confirmButtonColor: '#B57EDC', didOpen: () => { bindImagePreview('swal-eimage', 'swal-eimg-preview'); }, preConfirm: async () => { const name = document.getElementById('swal-ename').value.trim(); const price = parseInt(document.getElementById('swal-eprice').value) || 0; if (!name || price <= 0) { Swal.showValidationMessage('Harap isi Nama dan Harga produk!'); return false; } const newImageDataUrl = await readImageFileAsDataUrl(document.getElementById('swal-eimage')); return { name, price, category: document.getElementById('swal-ecategory').value, age: document.getElementById('swal-eage').value, ingredients: document.getElementById('swal-eingredients').value.trim(), status: document.getElementById('swal-estatus').value, image: newImageDataUrl }; } }).then(result => { if (result.isConfirmed && result.value) { fetch('/api/products/' + prodId, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify(result.value) }).then(async res => { const data = await res.json().catch(() => ({})); if (!res.ok || data.success === false) { throw new Error(data.message || ('Gagal memperbarui data (Status ' + res.status + ')')); } return data; }).then(() => { p.name = result.value.name; p.price = result.value.price; p.category = result.value.category; p.age = result.value.age; p.ingredients = result.value.ingredients; p.status = result.value.status; if (result.value.image) p.image = result.value.image; renderAllUI(); Swal.fire({ icon: 'success', title: 'Produk Diperbarui', text: `${p.name} berhasil disimpan!`, timer: 1200, showConfirmButton: false }); }).catch(err => { Swal.fire({ icon: 'error', title: 'Gagal Memperbarui Varian', text: err.message || 'Terjadi kesalahan sistem.' }); }); } }); }
-        function deleteProductOwner(prodId) { const p = state.products.find(x => x.id == prodId); if (!p) return; Swal.fire({ icon: 'warning', title: 'Hapus Varian Produk?', text: `Varian "${p.name}" akan dihapus permanen dari master produk dan menu harian.`, showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#dc3545' }).then(res => { if (res.isConfirmed) { fetch('/api/products/' + prodId, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok || data.success === false) { throw new Error(data.message || ('Gagal menghapus produk dari server (Status ' + response.status + ')')); } state.products = state.products.filter(x => x.id != prodId); state.dailyMenu.forEach(d => { d.productIds = (d.productIds || []).filter(id => id != prodId); }); state.cart = state.cart.filter(c => c.productId != prodId); state.posCart = state.posCart.filter(c => c.productId != prodId); renderAllUI(); Swal.fire({ icon: 'success', title: 'Produk Dihapus', timer: 1000, showConfirmButton: false }); }).catch(err => { Swal.fire({ icon: 'error', title: 'Gagal Menghapus Produk', text: err.message || 'Terjadi kesalahan pada server.' }); }); } }); }
+        function deleteProductOwner(prodId) {
+            const p = state.products.find(x => x.id == prodId);
+            if (!p) return;
+            Swal.fire({
+                icon: 'warning',
+                title: 'Nonaktifkan atau Hapus Varian?',
+                text: `Untuk menjaga akurasi laporan keuangan dan mencegah selisih pembukuan, sangat disarankan mengubah status "${p.name}" menjadi NONAKTIF daripada menghapus permanen.`,
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Nonaktifkan Produk (Disarankan)',
+                confirmButtonColor: '#B57EDC',
+                denyButtonText: 'Tetap Hapus Permanen',
+                denyButtonColor: '#dc3545',
+                cancelButtonText: 'Batal'
+            }).then(res => {
+                if (res.isConfirmed) {
+                    fetch('/api/products/' + prodId, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            name: p.name,
+                            price: p.price,
+                            category: p.category,
+                            age: p.age,
+                            ingredients: p.ingredients,
+                            status: 'Nonaktif',
+                            image: p.image || ''
+                        })
+                    }).then(async response => {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || data.success === false) {
+                            throw new Error(data.message || ('Gagal menonaktifkan produk (Status ' + response.status + ')'));
+                        }
+                        return data;
+                    }).then(() => {
+                        p.status = 'Nonaktif';
+                        renderAllUI();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Produk Dinonaktifkan',
+                            text: `Varian "${p.name}" kini berstatus Nonaktif (sembunyi di kasir/pelanggan, laporan keuangan tetap utuh).`,
+                            timer: 1800,
+                            showConfirmButton: false
+                        });
+                    }).catch(err => {
+                        Swal.fire({ icon: 'error', title: 'Gagal Menonaktifkan Varian', text: err.message || 'Terjadi kesalahan sistem.' });
+                    });
+                } else if (res.isDenied) {
+                    fetch('/api/products/' + prodId, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    }).then(async response => {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || data.success === false) {
+                            throw new Error(data.message || ('Gagal menghapus produk dari server (Status ' + response.status + ')'));
+                        }
+                        state.products = state.products.filter(x => x.id != prodId);
+                        state.dailyMenu.forEach(d => {
+                            d.productIds = (d.productIds || []).filter(id => id != prodId);
+                        });
+                        state.cart = state.cart.filter(c => c.productId != prodId);
+                        state.posCart = state.posCart.filter(c => c.productId != prodId);
+                        renderAllUI();
+                        Swal.fire({ icon: 'success', title: 'Produk Dihapus Permanen', timer: 1000, showConfirmButton: false });
+                    }).catch(err => {
+                        Swal.fire({ icon: 'error', title: 'Gagal Menghapus Produk', text: err.message || 'Terjadi kesalahan pada server.' });
+                    });
+                }
+            });
+        }
         function showAddProductModal() { Swal.fire({ title: 'Tambah Varian Mamam Yuk Baru', html: `<div class="text-start mb-2"><label class="fw-bold fs-7 d-block mb-1">Foto Produk (opsional, maks 2MB)</label><img id="swal-pimg-preview" class="rounded-3 mb-2" style="width:100%; max-height:150px; object-fit:cover; display:none;"><input id="swal-pimage" type="file" accept="image/*" class="swal2-file"></div><input id="swal-pname" class="swal2-input" placeholder="Nama Varian Mamam Yuk"><input id="swal-pprice" class="swal2-input" type="number" placeholder="Harga / Cup (Rp)"><input id="swal-pstock" class="swal2-input" type="number" placeholder="Stok Ready Initial (Cup)"><select id="swal-pcategory" class="swal2-select"><option value="Bubur">Bubur</option><option value="Snack">Snack</option></select><select id="swal-page" class="swal2-select"><option value="6+ Bulan">6+ Bulan</option><option value="8+ Bulan">8+ Bulan</option><option value="12+ Bulan">12+ Bulan</option></select><input id="swal-pingredients" class="swal2-input" placeholder="Komposisi Bahan"><select id="swal-pstatus" class="swal2-select"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select>`, focusConfirm: false, showCancelButton: true, confirmButtonText: 'Simpan Varian', confirmButtonColor: '#B57EDC', didOpen: () => { bindImagePreview('swal-pimage', 'swal-pimg-preview'); }, preConfirm: async () => { const name = document.getElementById('swal-pname').value.trim(); const price = parseInt(document.getElementById('swal-pprice').value) || 0; const stock = parseInt(document.getElementById('swal-pstock').value) || 0; const category = document.getElementById('swal-pcategory').value; const age = document.getElementById('swal-page').value; const ingredients = document.getElementById('swal-pingredients').value.trim(); const status = document.getElementById('swal-pstatus').value; if (!name || price <= 0) { Swal.showValidationMessage('Harap isi Nama dan Harga produk!'); return false; } const imageDataUrl = await readImageFileAsDataUrl(document.getElementById('swal-pimage')); return { name, price, stock, category, age, age_group: age, ingredients, status, image: imageDataUrl || '' }; } }).then((result) => { if (result.isConfirmed && result.value) { fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify(result.value) }).then(async res => { const data = await res.json().catch(() => ({})); if (!res.ok || data.success === false) { throw new Error(data.message || ('Gagal menyimpan data ke server (Status ' + res.status + ')')); } return data; }).then(data => { if (data.success && data.product) { const newP = { id: data.product.id, name: data.product.name, price: data.product.price, stock: data.product.stock, initialStock: data.product.stock, category: data.product.category || result.value.category || 'Bubur', age: data.product.age_group || result.value.age || '6+ Bulan', ingredients: data.product.ingredients || result.value.ingredients || 'Bahan segar alami', status: data.product.status || result.value.status || 'Aktif', image: data.product.image || result.value.image || '', customPoints: 0 }; state.products.push(newP); (state.dailyMenu || []).forEach(d => { if (!d.productIds) d.productIds = []; if (!d.productIds.includes(newP.id)) d.productIds.push(newP.id); }); renderAllUI(); Swal.fire({ icon: 'success', title: 'Produk Ditambahkan', text: `${newP.name} berhasil disimpan!`, timer: 1200, showConfirmButton: false }); } else { Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: (data && data.message) ? data.message : 'Gagal menyimpan varian baru.' }); } }).catch(err => { Swal.fire({ icon: 'error', title: 'Gagal Menyimpan Varian', text: err.message || 'Terjadi kesalahan sistem.' }); }); } }); }
         function updateCartQty(prodId, delta) { const item = state.cart.find(x => x.productId == prodId); if (item) { item.qty += delta; if (item.qty <= 0) { state.cart = state.cart.filter(x => x.productId != prodId); } } renderCartUI(); }
         function savePreOrdersToStorage() { try { localStorage.setItem('mpasi_customer_orders', JSON.stringify(state.preOrders)); } catch(e){} }

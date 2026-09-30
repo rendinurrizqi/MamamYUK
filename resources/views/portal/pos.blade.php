@@ -41,12 +41,12 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Nama Pelanggan</label>
-                            <input type="text" name="customer_name" class="form-control" placeholder="Masukkan nama pelanggan" required>
+                            <label for="customer_name" class="form-label fw-semibold">Nama Pelanggan</label>
+                            <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Masukkan nama pelanggan" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Outlet</label>
-                            <select name="outlet_id" class="form-select" required>
+                            <label for="outlet_id" class="form-label fw-semibold">Outlet</label>
+                            <select id="outlet_id" name="outlet_id" class="form-select" required>
                                 <option value="">Pilih outlet</option>
                                 @foreach($outlets as $outlet)
                                     <option value="{{ $outlet->id }}">{{ $outlet->name }}</option>
@@ -54,8 +54,8 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Metode Bayar</label>
-                            <select name="pay_method" class="form-select" required>
+                            <label for="pay_method" class="form-label fw-semibold">Metode Bayar</label>
+                            <select id="pay_method" name="pay_method" class="form-select" required>
                                 <option value="Cash">Cash</option>
                                 <option value="Transfer">Transfer</option>
                                 <option value="QRIS">QRIS</option>

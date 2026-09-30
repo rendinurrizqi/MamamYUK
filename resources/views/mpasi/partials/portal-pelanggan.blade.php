@@ -158,7 +158,7 @@
                         <div id="checkout-points-preview" class="fs-8 text-success fw-bold mt-2"></div>
 
                         <div class="mt-3 pt-3 border-top">
-                            <label class="form-label fs-8 fw-bold text-dark mb-1">
+                            <label for="co-voucher-code" class="form-label fs-8 fw-bold text-dark mb-1">
                                 <i class="fa-solid fa-ticket text-warning me-1"></i> Punya Kode Voucher / Poin?
                             </label>
                             <div class="input-group input-group-sm">
@@ -174,15 +174,15 @@
                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Formulir Data Pemesan <span class="text-danger">*Wajib Isi</span></h6>
                         <form id="checkout-form" onsubmit="handleProcessCheckout(event)">
                             <div class="mb-3">
-                                <label class="form-label fs-7 fw-bold">Nama Lengkap Bunda / Pemesan <span class="text-danger">*</span></label>
+                                <label for="co-name" class="form-label fs-7 fw-bold">Nama Lengkap Bunda / Pemesan <span class="text-danger">*</span></label>
                                 <input type="text" id="co-name" class="form-control" placeholder="Contoh: Bunda Siti Rahmawati" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fs-7 fw-bold">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
+                                <label for="co-wa" class="form-label fs-7 fw-bold">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
                                 <input type="tel" id="co-wa" class="form-control" placeholder="Contoh: 081298765432" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fs-7 fw-bold">Pilih Outlet Pengambilan <span class="text-danger">*</span></label>
+                                <label for="co-outlet" class="form-label fs-7 fw-bold">Pilih Outlet Pengambilan <span class="text-danger">*</span></label>
                                 <select id="co-outlet" class="form-select fs-7" required>
                                     <option value="Outlet Pusat (Jl. Pajajaran)">Outlet Pusat (Jl. Pajajaran)</option>
                                     <option value="Outlet Cabang 1 (Suryakencana)">Outlet Cabang 1 (Suryakencana)</option>
@@ -190,7 +190,7 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fs-7 fw-bold">Metode Pembayaran <span class="text-danger">*</span></label>
+                                <span class="form-label fs-7 fw-bold mb-2 d-block">Metode Pembayaran <span class="text-danger">*</span></span>
                                 <div class="d-flex flex-column gap-2">
                                      <label class="border p-2.5 rounded-3 d-flex align-items-center gap-3 cursor-pointer bg-purple-light border-purple-200">
                                          <input type="radio" name="paymethod" value="Midtrans" checked>
@@ -255,11 +255,11 @@
                 </div>
                 <form onsubmit="handleLogin(event)">
                     <div class="mb-3 text-start">
-                        <label class="form-label fs-7 fw-bold text-dark"><i class="fa-solid fa-user me-1 text-brand-purple"></i> Nama Panggilan Bunda</label>
+                        <label for="login-name" class="form-label fs-7 fw-bold text-dark"><i class="fa-solid fa-user me-1 text-brand-purple"></i> Nama Panggilan Bunda</label>
                         <input type="text" id="login-name" class="form-control fw-semibold" placeholder="Contoh: Bunda Siti">
                     </div>
                     <div class="mb-3 text-start">
-                        <label class="form-label fs-7 fw-bold text-dark"><i class="fa-solid fa-phone me-1 text-brand-purple"></i> Nomor WhatsApp / Email</label>
+                        <label for="login-identifier" class="form-label fs-7 fw-bold text-dark"><i class="fa-solid fa-phone me-1 text-brand-purple"></i> Nomor WhatsApp / Email</label>
                         <input type="text" id="login-identifier" class="form-control fw-semibold" placeholder="081298765432" required>
                     </div>
                     <button type="submit" class="btn btn-brand-purple w-100 py-2.5 fw-bold fs-6 mb-3 shadow-sm"><i class="fa-solid fa-right-to-bracket me-1"></i> MASUK MEMBER (+Poin)</button>

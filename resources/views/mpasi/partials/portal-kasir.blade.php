@@ -14,7 +14,7 @@
             <div id="kasir-sidebar-content">
                 <div class="mb-3 px-1">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label text-warning fs-8 fw-bold mb-0"><i class="fa-solid fa-store me-1"></i> Cabang Bertugas:</label>
+                        <span class="form-label text-warning fs-8 fw-bold mb-0"><i class="fa-solid fa-store me-1"></i> Cabang Bertugas:</span>
                         <span class="badge bg-success fs-8 text-white"><i class="fa-solid fa-lock me-1"></i> Terkunci PIN</span>
                     </div>
                     <div class="bg-white border border-warning rounded-3 p-2 text-start mb-2">
@@ -114,7 +114,7 @@
 
                                 <!-- Input Diskon Belanja -->
                                 <div class="mb-3 p-2 bg-light rounded border">
-                                    <label class="form-label fs-8 fw-bold text-brand-purple mb-1 d-block">
+                                    <label for="pos-discount-value" class="form-label fs-8 fw-bold text-brand-purple mb-1 d-block">
                                         <i class="fa-solid fa-tags me-1"></i> Diskon Belanja (Opsional)
                                     </label>
                                     <div class="input-group input-group-sm">
@@ -134,19 +134,19 @@
 
                                 <!-- Pilih Metode Pembayaran (Uang Cash / QRIS / Transfer) -->
                                 <div class="mb-3 p-2.5 bg-light rounded-3 border">
-                                    <label class="form-label fs-8 fw-bold text-brand-purple mb-2 d-block">
+                                    <span class="form-label fs-8 fw-bold text-brand-purple mb-2 d-block">
                                         <i class="fa-solid fa-credit-card me-1"></i> Metode Pembayaran Kasir
-                                    </label>
-                                    <div class="d-flex gap-2">
-                                        <div class="form-check flex-fill p-2 border rounded-3 bg-white text-center cursor-pointer mb-0">
+                                    </span>
+                                     <div class="d-flex gap-2">
+                                        <div class="form-check flex-fill p-2 border rounded-3 bg-white text-center cursor-pointer mb-0" onclick="document.getElementById('posPayCash').checked = true;">
                                             <input class="form-check-input ms-0 me-1.5 cursor-pointer" type="radio" name="posPaymentMethod" id="posPayCash" value="cash" checked>
-                                            <label class="form-check-label fw-bold text-dark cursor-pointer fs-8" for="posPayCash">
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer fs-8" for="posPayCash" onclick="event.stopPropagation();">
                                                 <i class="fa-solid fa-money-bill-wave text-success me-1"></i> Uang Cash
                                             </label>
                                         </div>
-                                        <div class="form-check flex-fill p-2 border rounded-3 bg-white text-center cursor-pointer mb-0">
+                                        <div class="form-check flex-fill p-2 border rounded-3 bg-white text-center cursor-pointer mb-0" onclick="document.getElementById('posPayQris').checked = true;">
                                             <input class="form-check-input ms-0 me-1.5 cursor-pointer" type="radio" name="posPaymentMethod" id="posPayQris" value="qris">
-                                            <label class="form-check-label fw-bold text-dark cursor-pointer fs-8" for="posPayQris">
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer fs-8" for="posPayQris" onclick="event.stopPropagation();">
                                                 <i class="fa-solid fa-qrcode text-primary me-1"></i> QRIS / Transfer
                                             </label>
                                         </div>
@@ -155,7 +155,7 @@
 
                                 <!-- Pilihan Cetak Belanja (Ya / Engga) -->
                                 <div class="mb-3 p-2.5 bg-purple-light rounded-3 border border-purple-200">
-                                    <label class="form-label fs-8 fw-bold text-brand-purple mb-1.5 d-block"><i class="fa-solid fa-print me-1"></i> Cetak Struk Belanja?</label>
+                                    <span class="form-label fs-8 fw-bold text-brand-purple mb-1.5 d-block"><i class="fa-solid fa-print me-1"></i> Cetak Struk Belanja?</span>
                                     <div class="d-flex gap-4 fs-7 fw-bold">
                                         <div class="form-check mb-0">
                                             <input class="form-check-input" type="radio" name="posPrintReceipt" id="posPrintYes" value="yes" checked>
