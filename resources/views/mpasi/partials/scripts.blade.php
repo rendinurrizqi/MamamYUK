@@ -587,6 +587,13 @@
                     state.outletStock[outName]._date = todayStr;
                     stockChanged = true;
                 }
+                (state.products || []).forEach(p => {
+                    const pIdStr = String(p.id);
+                    if (state.outletStock[outName][pIdStr] === undefined) {
+                        state.outletStock[outName][pIdStr] = Number(p.stock ?? p.initialStock ?? 20);
+                        stockChanged = true;
+                    }
+                });
             });
             if (salesChanged) saveSalesRecordsToStorage();
             if (stockChanged) saveOutletStockToStorage();
@@ -747,7 +754,15 @@
             if (orderOutlet === targetFilter) return true;
             const norm1 = String(orderOutlet).replace(/\s+/g, '').toLowerCase();
             const norm2 = String(targetFilter).replace(/\s+/g, '').toLowerCase();
-            return norm1 === norm2 || norm1.includes(norm2) || norm2.includes(norm1);
+            if (norm1 === norm2) return true;
+
+            const clean1 = norm1.replace(/^(outlet|cabang|pos)/i, '').replace(/\(.*?\)/g, '');
+            const clean2 = norm2.replace(/^(outlet|cabang|pos)/i, '').replace(/\(.*?\)/g, '');
+            if (clean1 !== '' && clean2 !== '' && (clean1 === clean2 || clean1.includes(clean2) || clean2.includes(clean1))) {
+                return true;
+            }
+
+            return false;
         }
 
         function getMatchingOutletStockKeys(outletName) {
@@ -2036,6 +2051,12 @@
                     state.outletStock[k] = {};
                 }
                 state.outletStock[k]._date = todayStr;
+                (state.products || []).forEach(prodObj => {
+                    const pId = String(prodObj.id);
+                    if (state.outletStock[k][pId] === undefined) {
+                        state.outletStock[k][pId] = getOutletStock(activeOutlet, prodObj);
+                    }
+                });
             });
 
             salesKeys.forEach(sk => {
@@ -2070,13 +2091,11 @@
                     });
 
                     salesKeys.forEach(sk => {
-                        const uniqueProdKeys = Array.from(new Set([pIdStr, altKeyStr, itemPIdStr].filter(Boolean)));
-                        uniqueProdKeys.forEach(prodK => {
-                            if (!state.outletSalesRecords[sk][prodK] || typeof state.outletSalesRecords[sk][prodK] !== 'object') {
-                                state.outletSalesRecords[sk][prodK] = { sold: 0 };
-                            }
-                            state.outletSalesRecords[sk][prodK].sold = (state.outletSalesRecords[sk][prodK].sold || 0) + item.qty;
-                        });
+                        const targetProdKey = pIdStr;
+                        if (!state.outletSalesRecords[sk][targetProdKey] || typeof state.outletSalesRecords[sk][targetProdKey] !== 'object') {
+                            state.outletSalesRecords[sk][targetProdKey] = { sold: 0 };
+                        }
+                        state.outletSalesRecords[sk][targetProdKey].sold = (state.outletSalesRecords[sk][targetProdKey].sold || 0) + item.qty;
                     });
                 }
             });
@@ -2254,7 +2273,7 @@
 
                         if (order.isPaid) {
                             const pm = (order.paymentMethod || order.payMethod || '').toLowerCase();
-                            const isQris = pm.includes('qris') || pm.includes('bca') || pm.includes('transfer');
+                            const isQris = pm.includes('qris') || pm.includes('bca') || pm.includes('transfer') || pm.includes('midtrans') || pm.includes('va') || pm.includes('bank') || pm.includes('gopay') || pm.includes('ovo') || pm.includes('shopeepay') || pm.includes('dana');
                             if (isQris) {
                                 qrisPreorderTotal += (order.totalAmount || 0);
                             } else {
@@ -2290,9 +2309,9 @@
                     ? Number(salesRec[pid].sold || 0)
                     : ((salesRec[altKey] && salesRec[altKey].sold !== undefined) ? Number(salesRec[altKey].sold || 0) : 0);
                 const jualan = posWalkinSales + takenPreorder;
-                const remainingPosAllocated = getOutletStock(outName, p);
-                const stok = remainingPosAllocated + posWalkinSales + pesanan;
-                const sisa = Math.max(0, stok - jualan);
+                const sisa = getOutletStock(outName, p);
+                const untakenPreorder = Math.max(0, pesanan - takenPreorder);
+                const stok = sisa + jualan + untakenPreorder;
                 const itemTotal = jualan * price;
 
                 totalStok += stok;
@@ -2687,7 +2706,8 @@
                     if (stockMap[altKey] !== undefined) return Number(stockMap[altKey]);
                 }
             }
-            return 0;
+            const fallback = Number(product.stock ?? product.initialStock ?? 20);
+            return isNaN(fallback) ? 20 : fallback;
         }
 
         function getPosAvailableStock(outletName, product) {

@@ -348,7 +348,18 @@ class MpasiController extends Controller
         if ($name1 === $name2) return true;
         $norm1 = strtolower(preg_replace('/\s+/', '', $name1));
         $norm2 = strtolower(preg_replace('/\s+/', '', $name2));
-        return $norm1 === $norm2 || str_contains($norm1, $norm2) || str_contains($norm2, $norm1);
+        if ($norm1 === $norm2) return true;
+
+        $clean1 = preg_replace('/^(outlet|cabang|pos)/i', '', $norm1);
+        $clean1 = preg_replace('/\([^)]*\)/', '', $clean1);
+        $clean2 = preg_replace('/^(outlet|cabang|pos)/i', '', $norm2);
+        $clean2 = preg_replace('/\([^)]*\)/', '', $clean2);
+
+        if ($clean1 !== '' && $clean2 !== '' && ($clean1 === $clean2 || str_contains($clean1, $clean2) || str_contains($clean2, $clean1))) {
+            return true;
+        }
+
+        return false;
     }
 
     public function apiSaveOutletStock(Request $request)
