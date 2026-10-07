@@ -24,16 +24,9 @@ class MpasiController extends Controller
     public function index()
     {
         $this->ensurePinColumnExists();
-        try {
-            Product::query()->whereRaw('LENGTH(image) > 50000')->update(['image' => null]);
-        } catch (\Throwable $e) {}
+        $this->ensureImageColumnIsLongText();
 
-        $products = Product::query()->orderBy('id')->get()->map(function ($p) {
-            if (!empty($p->image) && strlen($p->image) > 50000) {
-                $p->image = '';
-            }
-            return $p;
-        });
+        $products = Product::query()->orderBy('id')->get();
         $outlets = Outlet::query()->orderBy('id')->get();
         $dailyMenus = DailyMenu::query()->get();
         $rewards = PointReward::query()->where('is_active', true)->get();
