@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'Aktif',
             ],
             [
-                'name' => 'Pudding Mamam Yuk Mangga Avocado',
+                'name' => 'Pudding MPASI Hap Hap Baby Mangga Avocado',
                 'price' => 12000,
                 'category' => 'Snack Healthy',
                 'age_group' => '8+ Bulan',
@@ -111,7 +111,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Sup Macaroni Hati Ayam & Buncis',
                 'price' => 17000,
-                'category' => 'Sup Mamam Yuk',
+                'category' => 'Sup MPASI Hap Hap Baby',
                 'age_group' => '10+ Bulan',
                 'ingredients' => 'Macaroni gandum, hati ayam segar, buncis, kaldu ayam',
                 'stock' => 22,

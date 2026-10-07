@@ -98,7 +98,7 @@
                 <div class="row g-3">
                     <div class="col-md-7">
                         <div class="card-custom p-3">
-                            <h6 class="fw-bold mb-3" id="pos-products-heading"><i class="fa-solid fa-calendar-day text-brand-purple me-1"></i> Pilih Produk Mamam Yuk Ready Stock</h6>
+                            <h6 class="fw-bold mb-3" id="pos-products-heading"><i class="fa-solid fa-calendar-day text-brand-purple me-1"></i> Pilih Produk MPASI Hap Hap Baby Ready Stock</h6>
                             <div id="pos-products-grid" class="row g-2"></div>
                         </div>
                     </div>

@@ -4,8 +4,8 @@
             <a class="navbar-brand d-flex align-items-center gap-2 text-brand-purple" href="#" onclick="switchCustView('beranda')">
                 <div class="bg-brand-yellow text-dark p-2 rounded-circle fs-5"><i class="fa-solid fa-baby"></i></div>
                 <div>
-                    <span class="fs-5 fw-bold text-brand-purple">Mamam Yuk</span>
-                    <div class="text-muted fs-8 fw-semibold" style="margin-top:-4px;">Mamam Yuk Harian Untuk Si Kecil</div>
+                    <span class="fs-5 fw-bold text-brand-purple">MPASI Hap Hap Baby</span>
+                    <div class="text-muted fs-8 fw-semibold" style="margin-top:-4px;">MPASI Hap Hap Baby Harian Untuk Si Kecil</div>
                 </div>
             </a>
 
@@ -115,14 +115,14 @@
         </div>
 
         <div id="cust-view-keranjang" class="cust-view" style="display:none;">
-            <h3 class="fw-bold text-brand-purple mb-3"><i class="fa-solid fa-cart-shopping me-2"></i> Keranjang Belanja Mamam Yuk</h3>
+            <h3 class="fw-bold text-brand-purple mb-3"><i class="fa-solid fa-cart-shopping me-2"></i> Keranjang Belanja MPASI Hap Hap Baby</h3>
             <div class="row g-3">
                 <div class="col-lg-8">
                     <div class="card-custom p-3">
                         <div class="table-responsive">
                             <table class="table align-middle fs-7">
                                 <thead class="bg-light">
-                                    <tr><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Jumlah</th><th>Subtotal</th><th>Aksi</th></tr>
+                                    <tr><th>Varian MPASI Hap Hap Baby</th><th>Harga / Cup</th><th>Jumlah</th><th>Subtotal</th><th>Aksi</th></tr>
                                 </thead>
                                 <tbody id="cart-tbody"></tbody>
                             </table>
@@ -143,7 +143,7 @@
         </div>
 
         <div id="cust-view-checkout" class="cust-view" style="display:none;">
-            <h3 class="fw-bold text-brand-purple mb-4 text-center"><i class="fa-solid fa-credit-card me-2"></i> Form Checkout Pemesanan Mamam Yuk</h3>
+            <h3 class="fw-bold text-brand-purple mb-4 text-center"><i class="fa-solid fa-credit-card me-2"></i> Form Checkout Pemesanan MPASI Hap Hap Baby</h3>
             <div class="row g-4 max-w-1000 mx-auto">
                 <div class="col-md-5">
                     <div class="card-custom p-3 border-purple-200">
@@ -245,7 +245,7 @@
             <div class="card-custom p-4 max-w-500 mx-auto shadow-lg login-card-glass">
                 <div class="text-center mb-4">
                     <div class="bg-brand-yellow text-dark d-inline-flex p-3 rounded-circle mb-2 fs-2 shadow-sm"><i class="fa-solid fa-baby"></i></div>
-                    <h4 class="fw-bold text-brand-purple mb-1">Member Mamam Yuk Si Kecil</h4>
+                    <h4 class="fw-bold text-brand-purple mb-1">Member MPASI Hap Hap Baby Si Kecil</h4>
                     <div class="bg-warning bg-opacity-25 border border-warning rounded-3 p-3 mt-3 shadow-sm">
                         <div class="fw-extrabold fs-6 text-dark d-flex align-items-center justify-content-center gap-2">
                             <i class="fa-solid fa-coins text-warning fs-4"></i>

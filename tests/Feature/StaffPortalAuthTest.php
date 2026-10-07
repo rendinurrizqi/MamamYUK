@@ -15,11 +15,11 @@ class StaffPortalAuthTest extends TestCase
     {
         $response = $this->get('/portal/login');
         $response->assertStatus(200);
-        $response->assertSee('Portal Mamam Yuk');
+        $response->assertSee('Portal MPASI Hap Hap Baby');
 
         $responseLogin = $this->get('/login');
         $responseLogin->assertStatus(200);
-        $responseLogin->assertSee('Portal Mamam Yuk');
+        $responseLogin->assertSee('Portal MPASI Hap Hap Baby');
     }
 
     public function test_kasir_login_page_is_available(): void
@@ -27,7 +27,7 @@ class StaffPortalAuthTest extends TestCase
         $response = $this->get('/kasir/login');
 
         $response->assertStatus(200);
-        $response->assertSee('Portal Mamam Yuk');
+        $response->assertSee('Portal MPASI Hap Hap Baby');
     }
 
     public function test_admin_login_page_is_available(): void
@@ -35,7 +35,7 @@ class StaffPortalAuthTest extends TestCase
         $response = $this->get('/admin/login');
 
         $response->assertStatus(200);
-        $response->assertSee('Portal Mamam Yuk');
+        $response->assertSee('Portal MPASI Hap Hap Baby');
     }
 
     public function test_owner_login_page_is_available(): void
@@ -43,7 +43,7 @@ class StaffPortalAuthTest extends TestCase
         $response = $this->get('/owner/login');
 
         $response->assertStatus(200);
-        $response->assertSee('Portal Mamam Yuk');
+        $response->assertSee('Portal MPASI Hap Hap Baby');
     }
 
     public function test_staff_user_can_login_via_portal_mamam_yuk(): void

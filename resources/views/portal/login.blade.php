@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Portal Mamam Yuk - Login')
+@section('title', 'Portal MPASI Hap Hap Baby - Login')
 
 @section('content')
     <div class="login-portal-bg min-vh-100 d-flex align-items-center justify-content-center py-5 px-3">
@@ -10,8 +10,8 @@
                     <div class="bg-brand-yellow text-dark p-3 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width:64px;height:64px;">
                         <i class="fa-solid fa-user-shield fa-xl"></i>
                     </div>
-                    <h3 class="fw-bold text-brand-purple mb-1">Portal Mamam Yuk</h3>
-                    <p class="text-muted mb-0 fs-7">Masuk ke area kerja Mamam Yuk.</p>
+                    <h3 class="fw-bold text-brand-purple mb-1">Portal MPASI Hap Hap Baby</h3>
+                    <p class="text-muted mb-0 fs-7">Masuk ke area kerja MPASI Hap Hap Baby.</p>
                 </div>
 
                 @if ($errors->any())
@@ -28,13 +28,13 @@
                     @csrf
                     <div class="mb-3 text-start">
                         <label for="email" class="form-label fw-semibold text-dark">Email</label>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" class="form-control fw-semibold" placeholder="nama@mamamyuk.com" required autofocus>
+                        <input id="email" name="email" type="email" value="{{ old('email') }}" class="form-control fw-semibold" placeholder="nama@haphapbaby.com" required autofocus>
                     </div>
                     <div class="mb-3 text-start">
                         <label for="password" class="form-label fw-semibold text-dark">Password</label>
                         <input id="password" name="password" type="password" class="form-control fw-semibold" placeholder="Masukkan password" required>
                     </div>
-                    <button type="submit" class="btn btn-brand-purple w-100 fw-bold py-2.5 shadow-sm mb-2">Masuk ke Portal Mamam Yuk</button>
+                    <button type="submit" class="btn btn-brand-purple w-100 fw-bold py-2.5 shadow-sm mb-2">Masuk ke Portal MPASI Hap Hap Baby</button>
                 </form>
 
                 <div class="mt-4 text-center small text-muted border-top pt-3">

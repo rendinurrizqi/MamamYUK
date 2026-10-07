@@ -101,7 +101,7 @@
                     <div id="owner-tab-produk" class="owner-tab-content" style="display:none;">
                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                             <div>
-                                <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bowl-food text-brand-purple me-2"></i> Master Data Produk Mamam Yuk</h4>
+                                <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bowl-food text-brand-purple me-2"></i> Master Data Produk MPASI Hap Hap Baby</h4>
                                 <p class="text-muted fs-7 mb-0">Owner dapat menambah, mengedit, restok (Stok Pelanggan), mengubah status, maupun menghapus varian produk.</p>
                             </div>
                             <div class="filter-controls-mobile">
@@ -112,7 +112,7 @@
                             <div class="table-responsive">
                                 <table class="table align-middle fs-7 mb-0">
                                     <thead class="bg-light">
-                                        <tr><th>Foto</th><th>ID</th><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready Pelanggan</th><th>Status</th><th class="text-center">Aksi Owner</th></tr>
+                                        <tr><th>Foto</th><th>ID</th><th>Varian MPASI Hap Hap Baby</th><th>Harga / Cup</th><th>Kategori</th><th>Usia</th><th>Stok Ready Pelanggan</th><th>Status</th><th class="text-center">Aksi Owner</th></tr>
                                     </thead>
                                     <tbody id="own-products-tbody"></tbody>
                                 </table>
@@ -193,7 +193,7 @@
                         <div class="card-custom p-3 mt-3">
                             <div class="table-responsive">
                                 <table class="table align-middle fs-7 mb-0">
-                                    <thead class="bg-light"><tr><th>Varian Mamam Yuk</th><th>Pre-Order Online</th><th>Pre-Order Manual</th><th>Stok Produk</th><th>Total Porsi Masak</th></tr></thead>
+                                    <thead class="bg-light"><tr><th>Varian MPASI Hap Hap Baby</th><th>Pre-Order Online</th><th>Pre-Order Manual</th><th>Stok Produk</th><th>Total Porsi Masak</th></tr></thead>
                                     <tbody id="own-production-tbody"></tbody>
                                 </table>
                             </div>
@@ -385,7 +385,7 @@
                                 <div class="table-responsive">
                                     <table class="table align-middle fs-7 mb-0">
                                         <thead class="bg-light">
-                                            <tr><th>Varian Mamam Yuk</th><th>Harga / Cup</th><th>Poin Kustom / Cup</th><th class="text-center">Aksi</th></tr>
+                                            <tr><th>Varian MPASI Hap Hap Baby</th><th>Harga / Cup</th><th>Poin Kustom / Cup</th><th class="text-center">Aksi</th></tr>
                                         </thead>
                                         <tbody id="own-product-points-tbody"></tbody>
                                     </table>
@@ -540,7 +540,7 @@
                                             </label>
                                             <div class="d-flex flex-wrap gap-2">
                                                 <button type="button" class="btn btn-sm btn-outline-purple fw-bold fs-8" onclick="applyBgPreset('/images/bg-login.jpg')">
-                                                    <i class="fa-solid fa-rotate-left me-1"></i> Asli (Mamam Yuk Default)
+                                                    <i class="fa-solid fa-rotate-left me-1"></i> Asli (MPASI Hap Hap Baby Default)
                                                 </button>
                                                 <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold fs-8" onclick="applyBgPreset('https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1600&q=80')">
                                                     <i class="fa-solid fa-carrot me-1"></i> Healthy Organic Food
@@ -579,7 +579,7 @@
                                             <div class="bg-brand-yellow text-dark p-2 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:48px;height:48px;">
                                                 <i class="fa-solid fa-user-shield fs-5"></i>
                                             </div>
-                                            <h6 class="fw-bold text-brand-purple mb-1">Portal Mamam Yuk</h6>
+                                            <h6 class="fw-bold text-brand-purple mb-1">Portal MPASI Hap Hap Baby</h6>
                                             <p class="text-muted fs-8 mb-3">Tampilan login dengan background baru.</p>
                                             <button type="button" class="btn btn-brand-purple btn-sm w-100 fw-bold disabled" style="opacity:0.85;">Contoh Tombol Login</button>
                                         </div>

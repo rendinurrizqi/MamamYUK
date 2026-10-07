@@ -60,7 +60,7 @@ class MpasiController extends Controller
     {
         $settings = Setting::query()->pluck('value', 'key')->toArray();
         return view('portal.login', [
-            'portalTitle' => 'Mamam Yuk',
+            'portalTitle' => 'MPASI Hap Hap Baby',
             'settings' => $settings,
         ]);
     }
@@ -1609,7 +1609,7 @@ class MpasiController extends Controller
                 $itemsList .= ($idx + 1) . ". {$prodName} (x{$item->qty})\n";
             }
         } else {
-            $itemsList = "- Varian Mamam Yuk Harian\n";
+            $itemsList = "- Varian MPASI Hap Hap Baby Harian\n";
         }
 
         $outletName = $preOrder->outlet ? $preOrder->outlet->name : 'Outlet Pusat (Jl. Pajajaran)';
@@ -1621,7 +1621,7 @@ class MpasiController extends Controller
                  . "📍 *Outlet Pengambilan:* {$outletName}\n"
                  . "📅 *Waktu Ambil:* Besok Pagi (06:00 - 09:00 WIB)\n\n"
                  . "Silakan tunjukkan pesan ini ke Kasir saat mengambil di outlet ya.\n"
-                 . "Terima kasih telah memilih *Mamam Yuk*! 👶✨";
+                 . "Terima kasih telah memilih *MPASI Hap Hap Baby*! 👶✨";
 
         try {
             \Illuminate\Support\Facades\Http::withHeaders([
